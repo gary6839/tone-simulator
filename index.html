@@ -61,6 +61,9 @@
   #tone-sim .done-btn { width: 100%; padding: 12px; border: 2px solid #f39c12; background: #f39c12; color: #1a1a1a; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
   #tone-sim .fold-body { padding: 0 12px 12px; }
   #tone-sim .bleed-toggle { gap: 6px; }
+  #tone-sim .cable-btn { flex: 1; min-width: 0; padding: 8px 4px; border: 2px solid #444; background: #1a1a1a; color: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 1.2; transition: all 0.2s ease; }
+  #tone-sim .cable-btn.active { border-color: #f39c12; background: #332308; color: #f39c12; }
+  #tone-sim .cable-btn.active .btn-sub { color: #f39c12; }
   #tone-sim .bleed-btn { flex: 1; min-width: 0; padding: 8px 4px; border: 2px solid #444; background: #1a1a1a; color: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 1.2; transition: all 0.2s ease; }
   #tone-sim .bleed-btn.active { border-color: #f39c12; background: #332308; color: #f39c12; }
   #tone-sim .btn-sub { display: block; font-size: 0.7rem; font-weight: normal; color: #999; }
@@ -72,6 +75,27 @@
   #tone-sim .bleed-suggest.warn { color: #ff9f7a; }
   #tone-sim .bleed-custom { margin-top: 12px; padding: 12px; border: 1px dashed #555; border-radius: 6px; }
   #tone-sim .cap-pair { font-size: 0.8rem; color: #f1c40f; margin-top: 6px; min-height: 1em; }
+  #tone-sim .tab-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+  #tone-sim .tab-btn { flex: 1; min-width: 0; padding: 9px 4px; border: 2px solid #444; background: #1a1a1a; color: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 1.2; }
+  #tone-sim .tab-btn.active { border-color: #f39c12; background: #f39c12; color: #1a1a1a; }
+  #tone-sim .tab-panel[hidden] { display: none; }
+  #tone-sim .circuit-wrapper { margin-bottom: 12px; }
+  #tone-sim .circuit-caption { text-align: center; color: #bbb; font-size: 0.8rem; margin-top: 8px; line-height: 1.35; }
+  #tone-sim .circuit-wrapper svg path, #tone-sim .circuit-wrapper svg circle, #tone-sim .pickup-box { transition: stroke 0.2s, stroke-width 0.2s; }
+  #setup-fold[data-tab="pickup"] .part-pickup,
+  #setup-fold[data-tab="pots"] .part-vol, #setup-fold[data-tab="pots"] .part-tone,
+  #setup-fold[data-tab="wiring"] .part-tone, #setup-fold[data-tab="wiring"] .part-bleed,
+  #setup-fold[data-tab="cable"] .part-cable { stroke: #f39c12; stroke-width: 3.5; }
+  #tone-sim .hit rect { cursor: pointer; }
+  @media (max-width: 600px) and (min-height: 600px) {
+    #tone-sim .pin-top { position: sticky; top: 0; z-index: 5; background: #1a1a1a; padding-top: 6px; box-shadow: 0 6px 8px -6px rgba(0,0,0,0.8); }
+    #tone-sim .pin-top .graph-title { display: none; }
+    #tone-sim .pin-top .readout-grid { margin-bottom: 8px; }
+  }
+  @media (max-width: 600px) {
+    #tone-sim .circuit-wrapper { padding: 4px 2px 8px; }
+    #tone-sim .circuit-wrapper .graph-title { display: none; }
+  }
   #tone-sim .copyright { text-align: center; color: #777; font-size: 0.75rem; margin-top: 10px; }
   @media (max-width: 600px) {
     #tone-sim { padding: 0; }
@@ -99,40 +123,43 @@
         <li><b>Move the Tone and Volume knobs</b> and watch the graph. The curve shows how strongly each frequency reaches the amp. Where it drops on the right, the treble is being cut.</li>
         <li><b>Press Play</b> to hear a slightly overdriven guitar through the current settings. Keep it playing while you move the knobs: rolling Tone down smooths the fizz, and rolling Volume down cleans up the distortion, just like a real guitar into a driven amp.</li>
         <li><b>Cutoff</b> is the frequency where the treble has dropped 3 dB. A lower number means a darker sound.</li>
-        <li><b>Setup &amp; Circuit</b> starts open. Use it to match a guitar (pickup, pot value, tone cap, wiring style and treble bleed) and see how it's wired.</li>
+        <li><b>Setup &amp; Circuit</b> starts open. Its tabs (Pickup, Pots &amp; Cap, Wiring &amp; Bleed, Cable) match a guitar. The circuit lights up the part each tab changes, and tapping a part opens its tab.</li>
         <li><b>Treble bleed</b>: pick a style (Cap only, Parallel/Duncan or Series/Kinman), then a recipe. A ★ marks recipes suited to your pot value. Roll the Volume down to hear what it keeps.</li>
+        <li><b>Cable</b>: choose the cable type and length. Watch the resonant peak move as the cable gets longer.</li>
         <li><b>Close Setup</b> (tap its header or the Done button) so the graph and knobs fit on screen together. Tap the header again any time to reopen it.</li>
       </ul>
-      <p>This is a simplified model. Real guitars vary with cable length, amp and component tolerances, but the trends match what players hear.</p>
+      <p>This is a simplified model. Real guitars vary with the amp and component tolerances, but the trends match what players hear.</p>
     </div>
-    <div class="graph-wrapper">
-      <div class="graph-title">Frequency Response (dB)</div>
-      <svg class="response-graph" viewBox="0 0 600 300" style="width:100%; height:auto; display:block;">
-        <line x1="50" y1="10" x2="550" y2="10" stroke="#333" />
-        <line x1="50" y1="73.3" x2="550" y2="73.3" stroke="#555" />
-        <line x1="50" y1="136.7" x2="550" y2="136.7" stroke="#252525" stroke-dasharray="4" />
-        <line x1="50" y1="200" x2="550" y2="200" stroke="#252525" stroke-dasharray="4" />
-        <line x1="50" y1="263.3" x2="550" y2="263.3" stroke="#555" />
-        <line x1="50" y1="10" x2="50" y2="263.3" stroke="#555" />
-        <line x1="166.3" y1="10" x2="166.3" y2="263.3" stroke="#252525" stroke-dasharray="4" />
-        <line x1="333.3" y1="10" x2="333.3" y2="263.3" stroke="#252525" stroke-dasharray="4" />
-        <line x1="499.6" y1="10" x2="499.6" y2="263.3" stroke="#252525" stroke-dasharray="4" />
-        <text x="50" y="282" fill="#999" font-size="10" text-anchor="middle">20Hz</text>
-        <text x="166.3" y="282" fill="#999" font-size="10" text-anchor="middle">100Hz</text>
-        <text x="333.3" y="282" fill="#999" font-size="10" text-anchor="middle">1kHz</text>
-        <text x="499.6" y="282" fill="#999" font-size="10" text-anchor="middle">10kHz</text>
-        <text x="550" y="282" fill="#999" font-size="10" text-anchor="middle">20kHz</text>
-        <text x="42" y="14" fill="#999" font-size="10" text-anchor="end">+20</text>
-        <text x="42" y="77" fill="#999" font-size="10" text-anchor="end">0</text>
-        <text x="42" y="141" fill="#999" font-size="10" text-anchor="end">-20</text>
-        <text x="42" y="204" fill="#999" font-size="10" text-anchor="end">-40</text>
-        <text x="42" y="267" fill="#999" font-size="10" text-anchor="end">-60</text>
-        <path id="curvePath" d="" fill="none" stroke="#f39c12" stroke-width="3" />
-      </svg>
-    </div>
-    <div class="readout-grid">
-      <div class="readout">Pot Resistance: <span id="r-readout">250</span> kΩ</div>
-      <div class="readout">Cutoff (−3 dB): <span id="fc-readout">--</span></div>
+    <div class="pin-top" id="pin-top">
+      <div class="graph-wrapper">
+        <div class="graph-title">Frequency Response (dB)</div>
+        <svg class="response-graph" viewBox="0 0 600 300" style="width:100%; height:auto; display:block;">
+          <line x1="50" y1="10" x2="550" y2="10" stroke="#333" />
+          <line x1="50" y1="73.3" x2="550" y2="73.3" stroke="#555" />
+          <line x1="50" y1="136.7" x2="550" y2="136.7" stroke="#252525" stroke-dasharray="4" />
+          <line x1="50" y1="200" x2="550" y2="200" stroke="#252525" stroke-dasharray="4" />
+          <line x1="50" y1="263.3" x2="550" y2="263.3" stroke="#555" />
+          <line x1="50" y1="10" x2="50" y2="263.3" stroke="#555" />
+          <line x1="166.3" y1="10" x2="166.3" y2="263.3" stroke="#252525" stroke-dasharray="4" />
+          <line x1="333.3" y1="10" x2="333.3" y2="263.3" stroke="#252525" stroke-dasharray="4" />
+          <line x1="499.6" y1="10" x2="499.6" y2="263.3" stroke="#252525" stroke-dasharray="4" />
+          <text x="50" y="282" fill="#999" font-size="10" text-anchor="middle">20Hz</text>
+          <text x="166.3" y="282" fill="#999" font-size="10" text-anchor="middle">100Hz</text>
+          <text x="333.3" y="282" fill="#999" font-size="10" text-anchor="middle">1kHz</text>
+          <text x="499.6" y="282" fill="#999" font-size="10" text-anchor="middle">10kHz</text>
+          <text x="550" y="282" fill="#999" font-size="10" text-anchor="middle">20kHz</text>
+          <text x="42" y="14" fill="#999" font-size="10" text-anchor="end">+20</text>
+          <text x="42" y="77" fill="#999" font-size="10" text-anchor="end">0</text>
+          <text x="42" y="141" fill="#999" font-size="10" text-anchor="end">-20</text>
+          <text x="42" y="204" fill="#999" font-size="10" text-anchor="end">-40</text>
+          <text x="42" y="267" fill="#999" font-size="10" text-anchor="end">-60</text>
+          <path id="curvePath" d="" fill="none" stroke="#f39c12" stroke-width="3" />
+        </svg>
+      </div>
+      <div class="readout-grid">
+        <div class="readout">Pot Resistance: <span id="r-readout">250</span> kΩ</div>
+        <div class="readout">Cutoff (−3 dB): <span id="fc-readout">--</span></div>
+      </div>
     </div>
     <div class="audio-bar">
       <button type="button" class="play-btn" id="play-btn" aria-pressed="false">▶ Play sound</button>
@@ -155,10 +182,114 @@
         <small>Audio-taper pot. Rolling it down dulls the treble. Try a treble bleed under Setup to counter it.</small>
       </div>
     </div>
-    <details class="fold" id="setup-fold" open>
+    <details class="fold" id="setup-fold" data-tab="pickup" open>
       <summary><span class="fold-title">Setup &amp; Circuit</span> <span class="fold-hint" id="fold-hint">Tap here to close and use the knobs</span></summary>
       <div class="fold-body">
-        <div class="fold-tip">Choose your pickup, pots, tone cap, wiring and treble bleed here. When you're done, close Setup so the graph and the Tone and Volume knobs fit on screen together.</div>
+        <div class="fold-tip">Pick a tab to set up the guitar. The lit part of the circuit is what that tab changes; tap any part to jump to it. When you're done, close Setup to use the knobs.</div>
+        <div class="tab-bar" role="tablist" aria-label="Setup sections">
+          <button type="button" class="tab-btn active" role="tab" id="tabbtn-pickup" aria-selected="true" aria-controls="tab-pickup" data-tab="pickup">Pickup</button>
+          <button type="button" class="tab-btn" role="tab" id="tabbtn-pots" aria-selected="false" aria-controls="tab-pots" data-tab="pots">Pots &amp; Cap</button>
+          <button type="button" class="tab-btn" role="tab" id="tabbtn-wiring" aria-selected="false" aria-controls="tab-wiring" data-tab="wiring">Wiring &amp; Bleed</button>
+          <button type="button" class="tab-btn" role="tab" id="tabbtn-cable" aria-selected="false" aria-controls="tab-cable" data-tab="cable">Cable</button>
+        </div>
+    <div class="graph-wrapper circuit-wrapper">
+      <div class="graph-title">Circuit Model</div>
+      <svg viewBox="0 0 680 270" style="width:100%; height:auto; display:block;" font-family="sans-serif">
+        <g stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="50" cy="160" r="25" class="part-pickup" />
+          <path d="M38,160 q6,-12 12,0 t12,0" stroke="#f39c12" />
+          <path d="M50,80 L50,135" />
+          <path d="M50,185 L50,240" />
+          <path d="M50,80 L80,80" />
+          <path class="part-pickup" d="M80,80 L86,80 L91,68 L101,92 L111,68 L121,92 L129,68 L134,80 L140,80" />
+          <path class="part-pickup" d="M140,80 L150,80 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 L260,80" />
+          <path d="M260,80 L400,80" />
+          <path class="part-vol" d="M400,80 L400,115 L390,121 L410,133 L390,145 L410,157 L390,169 L400,175 L400,240" />
+          <path class="part-vol" d="M460,80 L460,145 L412,145 M420,140 L412,145 L420,150" />
+          <path d="M460,80 L640,80 M632,74 L640,80 L632,86" />
+          <path class="part-cable" d="M520,80 L520,150 M505,150 L535,150 M505,160 L535,160 M520,160 L520,240" />
+          <path d="M50,240 L520,240" />
+          <path d="M230,240 L230,250 M217,250 L243,250 M222,256 L238,256 M227,262 L233,262" />
+        </g>
+        <g id="tone-modern">
+          <path class="part-tone" stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+            d="M300,80 L300,100 L290,106 L310,118 L290,130 L310,142 L290,154 L300,160 L300,185 M285,185 L315,185 M285,195 L315,195 M300,195 L300,240" />
+          <circle cx="300" cy="80" r="3.5" fill="#cfcfcf" />
+          <circle cx="300" cy="240" r="3.5" fill="#cfcfcf" />
+          <text x="320" y="125" fill="#999" font-size="11">Tone pot</text>
+          <text x="320" y="139" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-rt">250.0 kΩ</text>
+          <text x="320" y="188" fill="#999" font-size="11">Tone cap</text>
+          <text x="320" y="202" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-ct">0.047 µF</text>
+        </g>
+        <g id="tone-fifties" style="display:none">
+          <path class="part-tone" stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+            d="M520,240 L600,240 M600,80 L600,100 L590,106 L610,118 L590,130 L610,142 L590,154 L600,160 L600,185 M585,185 L615,185 M585,195 L615,195 M600,195 L600,240" />
+          <circle cx="600" cy="80" r="3.5" fill="#cfcfcf" />
+          <circle cx="600" cy="240" r="3.5" fill="#cfcfcf" />
+          <text x="620" y="125" fill="#999" font-size="11">Tone pot</text>
+          <text x="620" y="139" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-rt">250.0 kΩ</text>
+          <text x="620" y="188" fill="#999" font-size="11">Tone cap</text>
+          <text x="620" y="202" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-ct">0.047 µF</text>
+        </g>
+        <g stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path class="part-bleed" id="bleed-cap" style="display:none"
+            d="M380,80 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80" />
+          <path class="part-bleed" id="bleed-parallel" style="display:none"
+            d="M380,80 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80 M380,45 L380,20 L398,20 L403,12 L411,28 L419,12 L427,28 L435,12 L443,28 L451,12 L456,20 L480,20 L480,45" />
+          <path class="part-bleed" id="bleed-hybrid" style="display:none"
+            d="M380,80 L380,76 L373,73 L387,67 L373,61 L387,55 L380,52 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80 M380,45 L380,20 L398,20 L403,12 L411,28 L419,12 L427,28 L435,12 L443,28 L451,12 L456,20 L480,20 L480,45" />
+          <path class="part-bleed" id="bleed-series" style="display:none"
+            d="M380,80 L380,45 L395,45 M395,35 L395,55 M403,35 L403,55 M403,45 L412,45 L417,37 L425,53 L433,37 L441,53 L449,37 L454,45 L480,45 L480,80" />
+        </g>
+        <g id="bleed-labels" style="display:none">
+          <circle cx="380" cy="80" r="3.5" fill="#cfcfcf" />
+          <circle cx="480" cy="80" r="3.5" fill="#cfcfcf" />
+          <text x="490" y="40" fill="#999" font-size="11">Treble bleed</text>
+          <text x="490" y="54" fill="#f1c40f" font-size="11" font-weight="bold" id="lbl-tb">1 nF</text>
+        </g>
+        <g fill="#cfcfcf">
+          <circle cx="520" cy="80" r="3.5" />
+          <circle cx="400" cy="240" r="3.5" />
+          <circle cx="520" cy="240" r="3.5" />
+        </g>
+        <rect class="part-pickup pickup-box" x="68" y="54" width="190" height="62" rx="6" fill="none" stroke="#555" stroke-dasharray="4" />
+        <g fill="#999" font-size="11">
+          <text x="76" y="50">Pickup</text>
+          <text x="640" y="70" text-anchor="end">To amp</text>
+          <text x="82" y="164">String</text>
+          <text x="82" y="177">signal</text>
+          <text x="540" y="152">Cable</text>
+          <text x="410" y="195">Volume pot</text>
+        </g>
+        <g fill="#f1c40f" font-size="11" font-weight="bold">
+          <text x="110" y="108" text-anchor="middle" id="lbl-rp">6.0 kΩ</text>
+          <text x="190" y="108" text-anchor="middle" id="lbl-l">2.4 H</text>
+          <text x="540" y="166" id="lbl-cable">450 pF</text>
+          <text x="410" y="209" id="lbl-rvol">250.0 kΩ</text>
+          <text x="410" y="223" id="lbl-vset" fill="#999" font-weight="normal">on 10.0</text>
+        </g>
+        <g class="hit" fill="transparent">
+          <rect data-goto="pickup" x="15" y="38" width="250" height="175" />
+          <rect data-goto="pots" x="280" y="92" width="95" height="125" />
+          <rect data-goto="pots" x="380" y="95" width="95" height="135" />
+          <rect data-goto="wiring" x="368" y="4" width="200" height="66" />
+          <rect data-goto="cable" x="498" y="132" width="78" height="85" />
+          <rect data-goto="pots" x="580" y="92" width="100" height="125" />
+        </g>
+      </svg>
+      <div class="circuit-caption" id="circuit-caption"></div>
+    </div>
+        <div class="tab-panel" id="tab-pickup" role="tabpanel" aria-labelledby="tabbtn-pickup">
+    <div class="controls" style="grid-template-columns:1fr; margin-bottom:15px;">
+      <div class="control-group">
+        <label>Pickup DC Resistance <span class="value-display" id="p-val">6.0 kΩ · ~2.4 H</span></label>
+        <input type="range" id="pickup" min="4000" max="16000" step="100" value="6000">
+        <div class="tick-row"><span>4k</span><span>6k Strat/Tele</span><span>8k P-90</span><span>10k+ Humbucker</span><span>16k</span></div>
+        <small style="margin-top:6px;">Typical: vintage single-coil 5–7k, P-90 ~8k, humbucker 7–16k. Inductance is estimated from resistance (L ≈ R ÷ 2500).</small>
+      </div>
+    </div>
+        </div>
+        <div class="tab-panel" id="tab-pots" role="tabpanel" aria-labelledby="tabbtn-pots" hidden>
     <div class="controls">
       <div class="control-group">
         <label>Potentiometer Type</label>
@@ -176,14 +307,8 @@
         <small id="cap-note" style="margin-top:6px;"></small>
       </div>
     </div>
-    <div class="controls" style="grid-template-columns:1fr; margin-bottom:15px;">
-      <div class="control-group">
-        <label>Pickup DC Resistance <span class="value-display" id="p-val">6.0 kΩ · ~2.4 H</span></label>
-        <input type="range" id="pickup" min="4000" max="16000" step="100" value="6000">
-        <div class="tick-row"><span>4k</span><span>6k Strat/Tele</span><span>8k P-90</span><span>10k+ Humbucker</span><span>16k</span></div>
-        <small style="margin-top:6px;">Typical: vintage single-coil 5–7k, P-90 ~8k, humbucker 7–16k. Inductance is estimated from resistance (L ≈ R ÷ 2500).</small>
-      </div>
-    </div>
+        </div>
+        <div class="tab-panel" id="tab-wiring" role="tabpanel" aria-labelledby="tabbtn-wiring" hidden>
     <div class="controls" style="grid-template-columns:1fr;">
       <div class="control-group">
         <label>Wiring</label>
@@ -220,87 +345,24 @@
         <small style="margin-top:6px;">Wired across the volume pot's input and wiper. Recipe values are typical starting points; ★ marks recipes suited to your pot value.</small>
       </div>
     </div>
-    <div class="graph-wrapper">
-      <div class="graph-title">Circuit Model</div>
-      <svg viewBox="0 0 680 270" style="width:100%; height:auto; display:block;" font-family="sans-serif">
-        <g stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="50" cy="160" r="25" />
-          <path d="M38,160 q6,-12 12,0 t12,0" stroke="#f39c12" />
-          <path d="M50,80 L50,135" />
-          <path d="M50,185 L50,240" />
-          <path d="M50,80 L80,80" />
-          <path d="M80,80 L86,80 L91,68 L101,92 L111,68 L121,92 L129,68 L134,80 L140,80" />
-          <path d="M140,80 L150,80 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 L260,80" />
-          <path d="M260,80 L400,80" />
-          <path d="M400,80 L400,115 L390,121 L410,133 L390,145 L410,157 L390,169 L400,175 L400,240" />
-          <path d="M460,80 L460,145 L412,145 M420,140 L412,145 L420,150" />
-          <path d="M460,80 L640,80 M632,74 L640,80 L632,86" />
-          <path d="M520,80 L520,150 M505,150 L535,150 M505,160 L535,160 M520,160 L520,240" />
-          <path d="M50,240 L520,240" />
-          <path d="M230,240 L230,250 M217,250 L243,250 M222,256 L238,256 M227,262 L233,262" />
-        </g>
-        <g id="tone-modern">
-          <path stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-            d="M300,80 L300,100 L290,106 L310,118 L290,130 L310,142 L290,154 L300,160 L300,185 M285,185 L315,185 M285,195 L315,195 M300,195 L300,240" />
-          <circle cx="300" cy="80" r="3.5" fill="#cfcfcf" />
-          <circle cx="300" cy="240" r="3.5" fill="#cfcfcf" />
-          <text x="320" y="125" fill="#999" font-size="11">Tone pot</text>
-          <text x="320" y="139" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-rt">250.0 kΩ</text>
-          <text x="320" y="188" fill="#999" font-size="11">Tone cap</text>
-          <text x="320" y="202" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-ct">0.047 µF</text>
-        </g>
-        <g id="tone-fifties" style="display:none">
-          <path stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-            d="M520,240 L600,240 M600,80 L600,100 L590,106 L610,118 L590,130 L610,142 L590,154 L600,160 L600,185 M585,185 L615,185 M585,195 L615,195 M600,195 L600,240" />
-          <circle cx="600" cy="80" r="3.5" fill="#cfcfcf" />
-          <circle cx="600" cy="240" r="3.5" fill="#cfcfcf" />
-          <text x="620" y="125" fill="#999" font-size="11">Tone pot</text>
-          <text x="620" y="139" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-rt">250.0 kΩ</text>
-          <text x="620" y="188" fill="#999" font-size="11">Tone cap</text>
-          <text x="620" y="202" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-ct">0.047 µF</text>
-        </g>
-        <g stroke="#f39c12" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <path id="bleed-cap" style="display:none"
-            d="M380,80 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80" />
-          <path id="bleed-parallel" style="display:none"
-            d="M380,80 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80 M380,45 L380,20 L398,20 L403,12 L411,28 L419,12 L427,28 L435,12 L443,28 L451,12 L456,20 L480,20 L480,45" />
-          <path id="bleed-hybrid" style="display:none"
-            d="M380,80 L380,76 L373,73 L387,67 L373,61 L387,55 L380,52 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80 M380,45 L380,20 L398,20 L403,12 L411,28 L419,12 L427,28 L435,12 L443,28 L451,12 L456,20 L480,20 L480,45" />
-          <path id="bleed-series" style="display:none"
-            d="M380,80 L380,45 L395,45 M395,35 L395,55 M403,35 L403,55 M403,45 L412,45 L417,37 L425,53 L433,37 L441,53 L449,37 L454,45 L480,45 L480,80" />
-        </g>
-        <g id="bleed-labels" style="display:none">
-          <circle cx="380" cy="80" r="3.5" fill="#cfcfcf" />
-          <circle cx="480" cy="80" r="3.5" fill="#cfcfcf" />
-          <text x="490" y="40" fill="#999" font-size="11">Treble bleed</text>
-          <text x="490" y="54" fill="#f1c40f" font-size="11" font-weight="bold" id="lbl-tb">1 nF</text>
-        </g>
-        <g fill="#cfcfcf">
-          <circle cx="520" cy="80" r="3.5" />
-          <circle cx="400" cy="240" r="3.5" />
-          <circle cx="520" cy="240" r="3.5" />
-        </g>
-        <rect x="68" y="54" width="190" height="62" rx="6" fill="none" stroke="#555" stroke-dasharray="4" />
-        <g fill="#999" font-size="11">
-          <text x="76" y="50">Pickup</text>
-          <text x="640" y="70" text-anchor="end">To amp</text>
-          <text x="82" y="164">String</text>
-          <text x="82" y="177">signal</text>
-          <text x="540" y="152">Cable</text>
-          <text x="410" y="195">Volume pot</text>
-        </g>
-        <g fill="#f1c40f" font-size="11" font-weight="bold">
-          <text x="110" y="108" text-anchor="middle" id="lbl-rp">6.0 kΩ</text>
-          <text x="190" y="108" text-anchor="middle" id="lbl-l">2.4 H</text>
-          <text x="540" y="166">500 pF</text>
-          <text x="410" y="209" id="lbl-rvol">250.0 kΩ</text>
-          <text x="410" y="223" id="lbl-vset" fill="#999" font-weight="normal">on 10.0</text>
-        </g>
-      </svg>
-      <div style="text-align:center; color:#888; font-size:0.75rem; margin-top:8px;" id="circuit-caption">
-        The pickup (resistance + inductance) feeds the tone circuit and the volume pot. The volume pot's wiper drives the cable capacitance on its way to the amp.
+        </div>
+        <div class="tab-panel" id="tab-cable" role="tabpanel" aria-labelledby="tabbtn-cable" hidden>
+    <div class="controls" style="grid-template-columns:1fr;">
+      <div class="control-group">
+        <label>Cable</label>
+        <div class="pot-toggle">
+          <button type="button" class="cable-btn" data-pf="20">Low-cap<span class="btn-sub">20 pF/ft</span></button>
+          <button type="button" class="cable-btn active" data-pf="30">Typical<span class="btn-sub">30 pF/ft</span></button>
+          <button type="button" class="cable-btn" data-pf="50">High-cap<span class="btn-sub">~50 pF/ft</span></button>
+        </div>
+        <label for="cable-len" style="margin-top:14px;">Length <span class="value-display" id="cable-val">15 ft · 450 pF</span></label>
+        <input type="range" id="cable-len" min="3" max="30" step="1" value="15">
+        <div class="tick-row"><span>3 ft</span><span>30 ft</span></div>
+        <div class="cap-pair" id="cable-peak"></div>
+        <small style="margin-top:6px;">The cable is a capacitor across the guitar's output. With the pickup's inductance it forms a resonant peak: more capacitance (a longer or higher-capacitance cable) moves the peak lower and takes off treble above it. Coiled and older cables tend to be high-capacitance.</small>
       </div>
     </div>
+        </div>
         <button type="button" class="done-btn" id="done-btn">✓ Done: close Setup and use the knobs</button>
       </div>
     </details>
@@ -310,7 +372,7 @@
 </div>
 <script>
 /* Guitar Tone Filter Simulator. (c) 2026 G$ Luthier Services. All rights reserved. Unauthorized copying or redistribution is prohibited. */
-(function(){var _a=document.getElementById('capacitor');var _b=document.getElementById('c-val');var _c=document.getElementById('cap-note');var _d=document.getElementById('cap-pair');var _e=[{uF:0.015,pot:null,note:'.015 µF: the smallest cap. Rolled down, it makes a vocal, midrange peak instead of going dark. Often fitted to the neck pickup for the "woman tone".'},{uF:0.022,pot:500,note:'.022 µF (Gibson style): the usual partner for 500k pots and humbuckers. Rolls the treble off smoothly without turning muddy.'},{uF:0.047,pot:250,note:'.047 µF (Fender style): the usual partner for 250k pots and single coils. The strongest cut; rolled down, it gets dark and thick.'}];var _f=document.getElementById('toneKnob');var _g=document.getElementById('k-val');var _h=document.getElementById('volKnob');var _i=document.getElementById('v-val');var _j=document.getElementById('pickup');var _k=document.getElementById('p-val');var _l=document.querySelectorAll('#tone-sim .bleed-btn');var _m=document.getElementById('bleed-recipe-row');var _n=document.getElementById('bleed-recipe');var _o=document.getElementById('bleed-suggest');var _p=document.getElementById('bleed-note');var _q=document.getElementById('bleed-custom');var _r=document.getElementById('tb-cap');var _s=document.getElementById('tb-cap-val');var _t=document.getElementById('tb-res');var _u=document.getElementById('tb-res-val');var _v=document.getElementById('tb-res-group');var _w=document.getElementById('fc-readout');var _x=document.getElementById('r-readout');var _y=document.querySelectorAll('#tone-sim .pot-btn');var _z=document.querySelectorAll('#tone-sim .wire-btn');var _A=document.getElementById('curvePath');var _B=document.getElementById('lbl-rp');var _C=document.getElementById('lbl-l');var _D=document.getElementById('lbl-rvol');var _E=document.getElementById('lbl-vset');var _F=document.querySelectorAll('#tone-sim .lbl-rt');var _G=document.querySelectorAll('#tone-sim .lbl-ct');var _H=document.getElementById('lbl-tb');var _I=document.getElementById('tone-modern');var _J=document.getElementById('tone-fifties');var _K=document.getElementById('bleed-labels');var _L={cap:document.getElementById('bleed-cap'),parallel:document.getElementById('bleed-parallel'),hybrid:document.getElementById('bleed-hybrid'),series:document.getElementById('bleed-series')};var _M=250;var _N=null;var _O='modern';var _P=2.4,_Q=6000,_R=500e-12;var _S={cap:[{name:'Generic',C:1e-9,pot:null},{name:'PRS',C:180e-12,pot:500},{name:'G&L',C:200e-12,pot:null},{name:'Custom',custom:true}],parallel:[{name:'Duncan standard',C:1e-9,R:100000,pot:250},{name:'Smoother sweep',C:1e-9,R:150000,pot:250},{name:'Humbucker',C:680e-12,R:150000,pot:500},{name:'Humbucker, subtle',C:470e-12,R:220000,pot:500},{name:'Fender modern',C:1.2e-9,R:130000,Rs:20000,pot:null},{name:'Custom',custom:true}],series:[{name:'Kinman',C:1.2e-9,R:130000,pot:250},{name:'Kinman, lighter',C:1e-9,R:130000,pot:null},{name:'Custom',custom:true}]};var _V={none:'No treble bleed. Rolling the volume down dulls the treble.',cap:'Cap only: the simplest version. Keeps the most treble, but can sound thin and bright at low volume.',parallel:'Parallel (Duncan style): the most common type. Keeps treble well, but the resistor changes how the volume knob sweeps.',series:'Series (Kinman style): the resistor keeps the volume knob\'s normal sweep and keeps more body as you roll down.'};var _W='none';var _X={cap:0,parallel:0,series:0};var _Y={cap:false,parallel:false,series:false};function _Z(_T){var _aa=Math.round(_T*1e12);return _aa>=1000?(_aa/1000).toFixed(_aa%1000===0?0:1)+' nF':Math.round(_aa)+' pF';}function _ba(_U){return Math.round(_U/1000)+' kΩ';}function _ca(_da,_ea){var _fa=_Z(_da.C);if(_ea==='cap')return _fa;_fa+=(_ea==='series'?' + ':' ∥ ')+_ba(_da.R);if(_da.Rs)_fa+=' + '+_ba(_da.Rs);return _fa;}function _ga(){if(_W==='none')return null;var _da=_S[_W][_X[_W]];if(_da.custom){_da={C:parseFloat(_r.value)*1e-12,R:parseFloat(_t.value)*1000,custom:true,pot:null};}return{type:_W,C:_da.C,R:_da.R,Rs:_da.Rs,recipe:_da};}function _ha(_ea){var _ia=_S[_ea];for(var _ja=0;_ja<_ia.length;_ja++)if(_ia[_ja].pot===_M)return _ja;return 0;}function _ka(){if(_W==='none')return;var _ia=_S[_W];_n.innerHTML='';_ia.forEach(function(_da,_ja){var _la=document.createElement('option');_la.value=_ja;_la.textContent=(_da.pot===_M?'★ ':'')+_da.name+(_da.custom?': set your own values':': '+_ca(_da,_W));_n.appendChild(_la);});_n.value=_X[_W];}var _ma=50,_na=550,_oa=10,_pa=263.3;var _qa=20,_ra=20000;var _sa=20,_ta=-60;var _ua=Math.log10(_qa),_va=Math.log10(_ra);var _wa=300,_xa=[];for(var _ja=0;_ja<=_wa;_ja++)_xa.push(Math.pow(10,_ua+(_ja/_wa)*(_va-_ua)));function _ya(_za){return _ma+((Math.log10(_za)-_ua)/(_va-_ua))*(_na-_ma);}function _Aa(_Ba){var _Ca=isFinite(_Ba)?Math.max(_ta,Math.min(_sa,_Ba)):_ta;return _oa+((_sa-_Ca)/(_sa-_ta))*(_pa-_oa);}var _Da=[0,0];function _Ea(_Fa,_Ga){return[_Fa[0]+_Ga[0],_Fa[1]+_Ga[1]];}function _Ha(_Fa,_Ga){return[_Fa[0]*_Ga[0]-_Fa[1]*_Ga[1],_Fa[0]*_Ga[1]+_Fa[1]*_Ga[0]];}function _Ia(_Fa,_Ga){var _Ja=_Ga[0]*_Ga[0]+_Ga[1]*_Ga[1];return[(_Fa[0]*_Ga[0]+_Fa[1]*_Ga[1])/_Ja,(_Fa[1]*_Ga[0]-_Fa[0]*_Ga[1])/_Ja];}function _Ka(_Fa){return _Ia([1,0],_Fa);}function _La(_Ma){return(Math.pow(81,_Ma)-1)/80;}function _Na(_Oa,_Ga){if(!_Ga)return _Da;if(_Ga.type==='series')return _Ka([_Ga.R,-1/(_Oa*_Ga.C)]);var _Pa=[0,_Oa*_Ga.C];if(_Ga.type==='parallel')_Pa=_Ea(_Pa,[1/_Ga.R,0]);if(_Ga.Rs)_Pa=_Ka(_Ea([_Ga.Rs,0],_Ka(_Pa)));return _Pa;}function _Qa(_za,_Ra){var _Oa=2*Math.PI*_za;var _Sa=_Ka([_Q,_Oa*_P]);var _Ta=_Ka([_Ra.R_t,-1/(_Oa*_Ra.C_t)]);var _Wa=_Ea([1/_Ra.R_high,0],_Na(_Oa,_Ra.bleed));var _Ya=_Ra.wiring==='modern'?_Ta:_Da;var _Za=_Ea([1/_Ra.R_low,_Oa*_R],_Ra.wiring==='fifties'?_Ta:_Da);var _ab=_Ea(_Wa,_Za);var _bb=_Ia(_Sa,_Ea(_Ea(_Sa,_Ya),_Ia(_Ha(_Wa,_Za),_ab)));return _Ia(_Ha(_bb,_Wa),_ab);}function _cb(_za,_Ra){var _db=_Qa(_za,_Ra);return 20*Math.log10(Math.hypot(_db[0],_db[1]));}var _eb=(function(){var _fb=null,_gb=false,_hb=null,_ib=0,_jb=0;var _kb=null,_lb=null,_mb=null,_nb=null,_ob={};var _pb=null,_qb=false,_rb=0;var _sb={note:{notes:[110.0],period:2.4,spread:0,sustain:20,level:0.35},power:{notes:[82.41,123.47,164.81],period:3.6,spread:0.012,sustain:20,level:0.6},chord:{notes:[82.41,123.47,164.81,207.65,246.94,329.63],period:4.0,spread:0.018,sustain:18,level:0.35}};function _vb(_wb,_xb,_yb,_zb,_Ab,_ub){var _Bb=Math.max(2,Math.round(_zb/_yb)),_Cb=new Float32Array(_Bb),_Db=0,_ja;for(_ja=0;_ja<_Bb;_ja++){var _da=Math.random()*2-1;_Db=0.6*_da+0.4*_Db;_Cb[_ja]=_Db;}var _Eb=Math.pow(10,-3/(_ub*_yb)),_Fb=0;for(_ja=_xb;_ja<_wb.length;_ja++){var _Gb=(_Fb+1)%_Bb,_Ca=_Cb[_Fb];_wb[_ja]+=_Ca*_Ab;_Cb[_Fb]=_Eb*(0.85*_Ca+0.15*_Cb[_Gb]);_Fb=_Gb;}}function _Hb(_Ib,_Jb){var _Kb=_sb[_Ib],_zb=_fb.sampleRate,_Lb=0.3;var _Mb=Math.round(_zb*(_Kb.period+_Lb));var _Ga=_fb.createBuffer(1,_Mb,_zb),_Ja=_Ga.getChannelData(0),_tb=_Kb.notes.slice(),_ja;if(_Jb)_tb.reverse();_tb.forEach(function(_za,_Nb){_vb(_Ja,Math.round(_Nb*_Kb.spread*_zb),_za,_zb,1,_Kb.sustain);});var _Ob=Math.round(_zb*0.05),_Pb=Math.round(_Ob/2),_Qb=[],_Rb;for(_Rb=0;_Rb+_Ob<=_Mb;_Rb+=_Pb){var _Sb=0;for(_ja=_Rb;_ja<_Rb+_Ob;_ja++)_Sb+=_Ja[_ja]*_Ja[_ja];_Qb.push(Math.sqrt(_Sb/_Ob));}var _Tb=Math.round(0.25*_zb/_Pb),_Ub=_Qb[Math.min(_Tb,_Qb.length-1)]||1e-9;var _Vb=_Qb.map(function(_Ca,_Nb){if(_Nb<_Tb)return 1;return Math.min(6,_Ub/Math.max(_Ca,1e-9));});for(_ja=0;_ja<_Mb;_ja++){var _Wb=_ja/_Pb,_Xb=Math.min(_Vb.length-1,Math.floor(_Wb)),_Yb=Math.min(_Vb.length-1,_Xb+1);var _fa=Math.min(1,_Wb-_Xb);_Ja[_ja]*=_Vb[_Xb]*(1-_fa)+_Vb[_Yb]*_fa;}var _Zb=0;for(_ja=0;_ja<_Mb;_ja++)_Zb=Math.max(_Zb,Math.abs(_Ja[_ja]));for(_ja=0;_ja<_Mb;_ja++)_Ja[_ja]*=_Kb.level/_Zb;var _ac=Math.round(_zb*_Lb);for(_ja=0;_ja<_ac;_ja++)_Ja[_Mb-1-_ja]*=_ja/_ac;return _Ga;}function _bc(_cc,_dc,_ec){var _Bb=_cc.length,_ja,_Rb,_Nb,_Mb;for(_ja=1,_Rb=0;_ja<_Bb;_ja++){var _fc=_Bb>>1;for(;_Rb&_fc;_fc>>=1)_Rb^=_fc;_Rb^=_fc;if(_ja<_Rb){var _fa=_cc[_ja];_cc[_ja]=_cc[_Rb];_cc[_Rb]=_fa;_fa=_dc[_ja];_dc[_ja]=_dc[_Rb];_dc[_Rb]=_fa;}}for(_Mb=2;_Mb<=_Bb;_Mb<<=1){var _gc=2*Math.PI/_Mb*(_ec?1:-1),_hc=Math.cos(_gc),_ic=Math.sin(_gc);for(_ja=0;_ja<_Bb;_ja+=_Mb){var _jc=1,_kc=0;for(_Nb=0;_Nb<_Mb/2;_Nb++){var _lc=_cc[_ja+_Nb],_mc=_dc[_ja+_Nb];var _nc=_cc[_ja+_Nb+_Mb/2]*_jc-_dc[_ja+_Nb+_Mb/2]*_kc;var _oc=_cc[_ja+_Nb+_Mb/2]*_kc+_dc[_ja+_Nb+_Mb/2]*_jc;_cc[_ja+_Nb]=_lc+_nc;_dc[_ja+_Nb]=_mc+_oc;_cc[_ja+_Nb+_Mb/2]=_lc-_nc;_dc[_ja+_Nb+_Mb/2]=_mc-_oc;var _pc=_jc*_hc-_kc*_ic;_kc=_jc*_ic+_kc*_hc;_jc=_pc;}}}}function _qc(_Ra,_zb){var _wa=4096,_cc=new Float64Array(_wa),_dc=new Float64Array(_wa),_Nb;for(_Nb=0;_Nb<=_wa/2;_Nb++){var _db=_Qa(Math.max(1,_Nb*_zb/_wa),_Ra);_cc[_Nb]=_db[0];_dc[_Nb]=_db[1];if(_Nb>0&&_Nb<_wa/2){_cc[_wa-_Nb]=_db[0];_dc[_wa-_Nb]=-_db[1];}}_dc[_wa/2]=0;_bc(_cc,_dc,true);var _rc=2048,_Ga=_fb.createBuffer(1,_rc,_zb),_Ja=_Ga.getChannelData(0),_ac=512;for(_Nb=0;_Nb<_rc;_Nb++){var _Oa=_Nb<_rc-_ac?1:0.5*(1+Math.cos(Math.PI*(_Nb-(_rc-_ac))/_ac));_Ja[_Nb]=_cc[_Nb]/_wa*_Oa;}return _Ga;}function _sc(){_qb=false;_rb=Date.now();if(!_fb||!_pb)return;var _fa=_fb.currentTime,_tc=_fb.createConvolver(),_uc=_fb.createGain();_tc.normalize=false;_tc.buffer=_qc(_pb,_fb.sampleRate);_uc.gain.setValueAtTime(0,_fa);_uc.gain.linearRampToValueAtTime(1,_fa+0.04);_kb.connect(_tc);_tc.connect(_uc);_uc.connect(_nb.input);if(_lb){var _vc=_lb,_wc=_mb;_wc.gain.setValueAtTime(_wc.gain.value,_fa);_wc.gain.linearRampToValueAtTime(0,_fa+0.04);setTimeout(function(){try{_kb.disconnect(_vc);_vc.disconnect();_wc.disconnect();}catch(_Sb){}},120);}_lb=_tc;_mb=_uc;}function _xc(_Ra){_pb=_Ra;if(!_fb||_qb)return;var _yc=Math.max(0,40-(Date.now()-_rb));_qb=true;setTimeout(_sc,_yc);}function _zc(){var _Ac=_fb.createWaveShaper(),_Bb=2048,_Bc=new Float32Array(_Bb),_Cc=2;for(var _ja=0;_ja<_Bb;_ja++){var _Ma=_ja/(_Bb-1)*2-1;_Bc[_ja]=Math.tanh(_Cc*(_Ma+0.08*_Ma*_Ma))/Math.tanh(_Cc);}_Ac.curve=_Bc;_Ac.oversample='4x';var _Dc=_fb.createBiquadFilter();_Dc.type='highpass';_Dc.frequency.value=80;_Dc.Q.value=0.7;var _Ec=_fb.createBiquadFilter();_Ec.type='lowpass';_Ec.frequency.value=7000;_Ec.Q.value=0.6;var _Fc=_fb.createGain();_Fc.gain.value=0.6;_Ac.connect(_Dc);_Dc.connect(_Ec);_Ec.connect(_Fc);return{input:_Ac,master:_Fc};}function _Gc(){if(_fb)return;var _Hc=window.AudioContext||window.webkitAudioContext;_fb=new _Hc();_kb=_fb.createGain();_nb=_zc();_nb.master.connect(_fb.destination);}function _Ic(_Ib,_Jb){var _Jc=_Ib+(_Jb?'u':'d');if(!_ob[_Jc])_ob[_Jc]=_Hb(_Ib,_Jb);return _ob[_Jc];}function _Kc(){var _Ib=document.getElementById('sound-select').value,_Kb=_sb[_Ib];while(_ib<_fb.currentTime+0.3){var _Lc=_fb.createBufferSource();_Lc.buffer=_Ic(_Ib,_Ib==='chord'&&_jb%2===1);_Lc.connect(_kb);_Lc.start(_ib);_jb++;_ib+=_Kb.period;}}function _xb(){_Gc();if(_fb.resume)_fb.resume();_sc();_nb.master.gain.cancelScheduledValues(_fb.currentTime);_nb.master.gain.setValueAtTime(0.6,_fb.currentTime);_ib=_fb.currentTime+0.05;_jb=0;_Kc();_hb=setInterval(_Kc,100);_gb=true;}function _Mc(){if(!_gb)return;clearInterval(_hb);_hb=null;_gb=false;var _fa=_fb.currentTime;_nb.master.gain.setValueAtTime(_nb.master.gain.value,_fa);_nb.master.gain.linearRampToValueAtTime(0,_fa+0.15);setTimeout(function(){if(!_gb&&_fb.suspend)_fb.suspend();},250);}return{toggle:function(){if(_gb)_Mc();else _xb();return _gb;},stop:_Mc,isPlaying:function(){return _gb;},setParams:_xc,renderOffline:function(_Ra,_Ib,_Nc){var _Oc=[_fb,_kb,_nb,_lb,_mb,_ob,_pb];var _vc=new OfflineAudioContext(1,Math.round(44100*_Nc),44100);_fb=_vc;_ob={};_lb=null;_mb=null;_pb=_Ra;_kb=_fb.createGain();_nb=_zc();_nb.master.connect(_fb.destination);_sc();var _Pc=_sb[_Ib].period,_Qc=0,_Bb=0;for(_Qc=0;_Qc<_Nc;_Qc+=_Pc,_Bb++){var _Lc=_fb.createBufferSource();_Lc.buffer=_Ic(_Ib,_Ib==='chord'&&_Bb%2===1);_Lc.connect(_kb);_Lc.start(_Qc);}var _Rc=_vc.startRendering();_fb=_Oc[0];_kb=_Oc[1];_nb=_Oc[2];_lb=_Oc[3];_mb=_Oc[4];_ob=_Oc[5];_pb=_Oc[6];return _Rc;}};})();function _Sc(_Ca){return(_Ca/1000).toFixed(1)+' kΩ';}function _Tc(_Ma){return(_Ma*10).toFixed(1);}function _Uc(_Xa){_m.hidden=!_Xa;_p.textContent=_V[_W];_l.forEach(function(_Ga){_Ga.classList.toggle('active',_Ga.getAttribute('data-style')===_W);});if(!_Xa)return;var _da=_Xa.recipe;_q.hidden=!_da.custom;_v.style.display=_W==='cap'?'none':'';_s.textContent=_Z(parseFloat(_r.value)*1e-12);_u.textContent=_t.value+' kΩ';var _Vc='',_Wc=false;if(_M===500&&_W!=='series'&&_Xa.C>=1e-9){_Vc='With 500k pots, 1 nF or more can sound thin and harsh. Try 470–680 pF.';_Wc=true;}else if(_da.pot&&_da.pot!==_M){_Vc='This recipe is meant for '+_da.pot+'k pots. Your pots are '+_M+'k; try a ★ recipe.';_Wc=true;}else if(_da.pot===_M){_Vc='★ Suggested for your '+_M+'k pots';}else if(!_da.custom){_Vc='Works with 250k or 500k pots.';}_o.textContent=_Vc;_o.classList.toggle('warn',_Wc);}function _Xc(){var _Yc=_M*1000;var _Zc=_f.value/100;var _ad=_h.value/100;var _bd=_e[parseInt(_a.value,10)];var _Va=_bd.uF*1e-6;var _Xa=_ga();_Q=parseFloat(_j.value);_P=_Q/2500;var _Ua=_Zc<=0.5?_Yc*0.1*(_Zc/0.5):_Yc*(0.1+0.9*((_Zc-0.5)/0.5));var _cd=_La(_ad);var _dd={R_t:_Ua,C_t:_Va,R_low:Math.max(1,_Yc*_cd),R_high:Math.max(1,_Yc*(1-_cd)),wiring:_O,bleed:_Xa};_x.textContent=_M;_b.textContent=_bd.uF.toFixed(3)+' µF';_c.textContent=_bd.note;_d.textContent=_bd.pot===_M?'★ Classic pairing with your '+_M+'k pots':_bd.pot?'Classic pairing is with '+_bd.pot+'k pots':'A specialty choice; works with 250k or 500k pots';_k.textContent=_Sc(_Q)+' · ~'+_P.toFixed(1)+' H';_g.textContent=_Zc===1?'10.0 (Wide Open)':_Zc===0?'0.0 (Fully Dark)':_Tc(_Zc);_i.textContent=_ad===1?'10.0 (Full)':_ad===0?'0.0 (Off)':_Tc(_ad);_B.textContent=_Sc(_Q);_C.textContent=_P.toFixed(1)+' H';_D.textContent=_Sc(_Yc);_E.textContent='on '+_Tc(_ad);_F.forEach(function(_ed){_ed.textContent=_Sc(_Ua);});_G.forEach(function(_ed){_ed.textContent=_bd.uF.toFixed(3)+' µF';});_I.style.display=_O==='modern'?'':'none';_J.style.display=_O==='fifties'?'':'none';var _fd=!_Xa?'none':_Xa.Rs?'hybrid':_Xa.type;Object.keys(_L).forEach(function(_Nb){_L[_Nb].style.display=_Nb===_fd?'':'none';});_K.style.display=_Xa?'':'none';_H.textContent=_Xa?_ca(_Xa,_Xa.type):'';_Uc(_Xa);_N=_dd;_eb.setParams(_dd);var _gd=_xa.map(function(_za){return _cb(_za,_dd);});var _Ja='';for(var _ja=0;_ja<_xa.length;_ja++){_Ja+=(_ja===0?'M':'L')+_ya(_xa[_ja]).toFixed(1)+','+_Aa(_gd[_ja]).toFixed(1)+' ';}_A.setAttribute('d',_Ja);if(_ad===0){_w.textContent='Muted';return;}var _hd=_gd[0],_id=0;for(var _Rb=1;_Rb<_gd.length;_Rb++)if(_gd[_Rb]>_gd[_id])_id=_Rb;var _jd=null;for(var _Nb=Math.max(_id,1);_Nb<_gd.length;_Nb++){if(_gd[_Nb]<_hd-3){var _fa=(_hd-3-_gd[_Nb-1])/(_gd[_Nb]-_gd[_Nb-1]);_jd=_xa[_Nb-1]*Math.pow(_xa[_Nb]/_xa[_Nb-1],isFinite(_fa)?_fa:0);break;}}_w.textContent=_jd===null?'> 20,000 Hz':Math.round(_jd).toLocaleString()+' Hz';}_a.addEventListener('input',_Xc);_f.addEventListener('input',_Xc);_h.addEventListener('input',_Xc);_j.addEventListener('input',_Xc);_l.forEach(function(_kd){_kd.addEventListener('click',function(){_W=_kd.getAttribute('data-style');if(_W!=='none'&&!_Y[_W]){_X[_W]=_ha(_W);_Y[_W]=true;}_ka();_Xc();});});_n.addEventListener('change',function(){_X[_W]=parseInt(_n.value,10);_Xc();});_r.addEventListener('input',_Xc);_t.addEventListener('input',_Xc);_y.forEach(function(_kd){_kd.addEventListener('click',function(){_y.forEach(function(_Ga){_Ga.classList.remove('active');});_kd.classList.add('active');_M=parseInt(_kd.getAttribute('data-value'),10);_ka();_Xc();});});_z.forEach(function(_kd){_kd.addEventListener('click',function(){_z.forEach(function(_Ga){_Ga.classList.remove('active');});_kd.classList.add('active');_O=_kd.getAttribute('data-wiring');_Xc();});});var _ld=document.getElementById('play-btn');var _md=document.getElementById('sound-select');function _nd(_od){_ld.textContent=_od?'■ Stop sound':'▶ Play sound';_ld.classList.toggle('on',_od);_ld.setAttribute('aria-pressed',_od?'true':'false');}_ld.addEventListener('click',function(){try{_nd(_eb.toggle());}catch(_Sb){_ld.textContent='Sound not supported';_ld.disabled=true;}});_md.addEventListener('change',function(){if(_eb.isPlaying()){_eb.stop();setTimeout(function(){_nd(_eb.toggle());},200);}});document.addEventListener('visibilitychange',function(){if(document.hidden&&_eb.isPlaying()){_eb.stop();_nd(false);}});window.addEventListener('pagehide',function(){_eb.stop();});if(location.hash==='#audiotest')window.__toneAudio={audio:_eb,transfer:_Qa,params:function(){return _N;}};var _pd=document.getElementById('setup-fold');var _qd=document.getElementById('fold-hint');var _rd=document.getElementById('done-btn');function _sd(){_qd.textContent=_pd.open?'Tap here to close and use the knobs':'Tap to change pickup, pots, cap and wiring';}_pd.addEventListener('toggle',_sd);_rd.addEventListener('click',function(){_pd.open=false;_sd();try{document.getElementById('tone-sim').scrollIntoView({behavior:'smooth',block:'start'});}catch(_Sb){}});_sd();var _ud=document.getElementById('help-btn');var _vd=document.getElementById('help-panel');_ud.addEventListener('click',function(){var _td=_vd.hidden;_vd.hidden=!_td;_ud.setAttribute('aria-expanded',_td?'true':'false');_ud.textContent=_td?'✕ Close':'ⓘ How to use';});_Xc();})();
+(function(){var _a=document.getElementById('capacitor');var _b=document.getElementById('c-val');var _c=document.getElementById('cap-note');var _d=document.getElementById('cap-pair');var _e=[{uF:0.015,pot:null,note:'.015 µF: the smallest cap. Rolled down, it makes a vocal, midrange peak instead of going dark. Often fitted to the neck pickup for the "woman tone".'},{uF:0.022,pot:500,note:'.022 µF (Gibson style): the usual partner for 500k pots and humbuckers. Rolls the treble off smoothly without turning muddy.'},{uF:0.047,pot:250,note:'.047 µF (Fender style): the usual partner for 250k pots and single coils. The strongest cut; rolled down, it gets dark and thick.'}];var _f=document.getElementById('toneKnob');var _g=document.getElementById('k-val');var _h=document.getElementById('volKnob');var _i=document.getElementById('v-val');var _j=document.getElementById('pickup');var _k=document.getElementById('p-val');var _l=document.querySelectorAll('#tone-sim .bleed-btn');var _m=document.getElementById('bleed-recipe-row');var _n=document.getElementById('bleed-recipe');var _o=document.getElementById('bleed-suggest');var _p=document.getElementById('bleed-note');var _q=document.getElementById('bleed-custom');var _r=document.getElementById('tb-cap');var _s=document.getElementById('tb-cap-val');var _t=document.getElementById('tb-res');var _u=document.getElementById('tb-res-val');var _v=document.getElementById('tb-res-group');var _w=document.getElementById('fc-readout');var _x=document.getElementById('r-readout');var _y=document.querySelectorAll('#tone-sim .pot-btn');var _z=document.querySelectorAll('#tone-sim .wire-btn');var _A=document.getElementById('curvePath');var _B=document.getElementById('lbl-rp');var _C=document.getElementById('lbl-l');var _D=document.getElementById('lbl-rvol');var _E=document.getElementById('lbl-vset');var _F=document.querySelectorAll('#tone-sim .lbl-rt');var _G=document.querySelectorAll('#tone-sim .lbl-ct');var _H=document.getElementById('lbl-tb');var _I=document.getElementById('tone-modern');var _J=document.getElementById('tone-fifties');var _K=document.getElementById('bleed-labels');var _L={cap:document.getElementById('bleed-cap'),parallel:document.getElementById('bleed-parallel'),hybrid:document.getElementById('bleed-hybrid'),series:document.getElementById('bleed-series')};var _M=250;var _N=null;var _O='modern';var _P=2.4,_Q=6000,_R=450e-12;var _S=30;var _T=document.getElementById('cable-len');var _U=document.getElementById('cable-val');var _V=document.getElementById('cable-peak');var _W=document.querySelectorAll('#tone-sim .cable-btn');var _X=document.getElementById('lbl-cable');var _Y={cap:[{name:'Generic',C:1e-9,pot:null},{name:'PRS',C:180e-12,pot:500},{name:'G&L',C:200e-12,pot:null},{name:'Custom',custom:true}],parallel:[{name:'Duncan standard',C:1e-9,R:100000,pot:250},{name:'Smoother sweep',C:1e-9,R:150000,pot:250},{name:'Humbucker',C:680e-12,R:150000,pot:500},{name:'Humbucker, subtle',C:470e-12,R:220000,pot:500},{name:'Fender modern',C:1.2e-9,R:130000,Rs:20000,pot:null},{name:'Custom',custom:true}],series:[{name:'Kinman',C:1.2e-9,R:130000,pot:250},{name:'Kinman, lighter',C:1e-9,R:130000,pot:null},{name:'Custom',custom:true}]};var _ca={none:'No treble bleed. Rolling the volume down dulls the treble.',cap:'Cap only: the simplest version. Keeps the most treble, but can sound thin and bright at low volume.',parallel:'Parallel (Duncan style): the most common type. Keeps treble well, but the resistor changes how the volume knob sweeps.',series:'Series (Kinman style): the resistor keeps the volume knob\'s normal sweep and keeps more body as you roll down.'};var _da='none';var _ea={cap:0,parallel:0,series:0};var _fa={cap:false,parallel:false,series:false};function _ga(_aa){var _ha=Math.round(_aa*1e12);return _ha>=1000?(_ha/1000).toFixed(_ha%1000===0?0:1)+' nF':Math.round(_ha)+' pF';}function _ia(_ba){return Math.round(_ba/1000)+' kΩ';}function _ja(_ka,_la){var _ma=_ga(_ka.C);if(_la==='cap')return _ma;_ma+=(_la==='series'?' + ':' ∥ ')+_ia(_ka.R);if(_ka.Rs)_ma+=' + '+_ia(_ka.Rs);return _ma;}function _na(){if(_da==='none')return null;var _ka=_Y[_da][_ea[_da]];if(_ka.custom){_ka={C:parseFloat(_r.value)*1e-12,R:parseFloat(_t.value)*1000,custom:true,pot:null};}return{type:_da,C:_ka.C,R:_ka.R,Rs:_ka.Rs,recipe:_ka};}function _oa(_la){var _pa=_Y[_la];for(var _qa=0;_qa<_pa.length;_qa++)if(_pa[_qa].pot===_M)return _qa;return 0;}function _ra(){if(_da==='none')return;var _pa=_Y[_da];_n.innerHTML='';_pa.forEach(function(_ka,_qa){var _sa=document.createElement('option');_sa.value=_qa;_sa.textContent=(_ka.pot===_M?'★ ':'')+_ka.name+(_ka.custom?': set your own values':': '+_ja(_ka,_da));_n.appendChild(_sa);});_n.value=_ea[_da];}var _ta=50,_ua=550,_va=10,_wa=263.3;var _xa=20,_ya=20000;var _za=20,_Aa=-60;var _Ba=Math.log10(_xa),_Ca=Math.log10(_ya);var _Da=300,_Ea=[];for(var _qa=0;_qa<=_Da;_qa++)_Ea.push(Math.pow(10,_Ba+(_qa/_Da)*(_Ca-_Ba)));function _Fa(_Ga){return _ta+((Math.log10(_Ga)-_Ba)/(_Ca-_Ba))*(_ua-_ta);}function _Ha(_Ia){var _Ja=isFinite(_Ia)?Math.max(_Aa,Math.min(_za,_Ia)):_Aa;return _va+((_za-_Ja)/(_za-_Aa))*(_wa-_va);}var _Ka=[0,0];function _La(_Ma,_Na){return[_Ma[0]+_Na[0],_Ma[1]+_Na[1]];}function _Oa(_Ma,_Na){return[_Ma[0]*_Na[0]-_Ma[1]*_Na[1],_Ma[0]*_Na[1]+_Ma[1]*_Na[0]];}function _Pa(_Ma,_Na){var _Qa=_Na[0]*_Na[0]+_Na[1]*_Na[1];return[(_Ma[0]*_Na[0]+_Ma[1]*_Na[1])/_Qa,(_Ma[1]*_Na[0]-_Ma[0]*_Na[1])/_Qa];}function _Ra(_Ma){return _Pa([1,0],_Ma);}function _Sa(_Ta){return(Math.pow(81,_Ta)-1)/80;}function _Ua(_Va,_Na){if(!_Na)return _Ka;if(_Na.type==='series')return _Ra([_Na.R,-1/(_Va*_Na.C)]);var _Wa=[0,_Va*_Na.C];if(_Na.type==='parallel')_Wa=_La(_Wa,[1/_Na.R,0]);if(_Na.Rs)_Wa=_Ra(_La([_Na.Rs,0],_Ra(_Wa)));return _Wa;}function _Xa(_Ga,_Ya){var _Va=2*Math.PI*_Ga;var _Za=_Ra([_Q,_Va*_P]);var _ab=_Ra([_Ya.R_t,-1/(_Va*_Ya.C_t)]);var _db=_La([1/_Ya.R_high,0],_Ua(_Va,_Ya.bleed));var _fb=_Ya.wiring==='modern'?_ab:_Ka;var _gb=_La([1/_Ya.R_low,_Va*_R],_Ya.wiring==='fifties'?_ab:_Ka);var _hb=_La(_db,_gb);var _ib=_Pa(_Za,_La(_La(_Za,_fb),_Pa(_Oa(_db,_gb),_hb)));return _Pa(_Oa(_ib,_db),_hb);}function _jb(_Ga,_Ya){var _kb=_Xa(_Ga,_Ya);return 20*Math.log10(Math.hypot(_kb[0],_kb[1]));}var _lb=(function(){var _mb=null,_nb=false,_ob=null,_pb=0,_qb=0;var _rb=null,_sb=null,_tb=null,_ub=null,_vb={};var _wb=null,_xb=false,_yb=0;var _zb={note:{notes:[110.0],period:2.4,spread:0,sustain:20,level:0.35},power:{notes:[82.41,123.47,164.81],period:3.6,spread:0.012,sustain:20,level:0.6},chord:{notes:[82.41,123.47,164.81,207.65,246.94,329.63],period:4.0,spread:0.018,sustain:18,level:0.35}};function _Cb(_Db,_Eb,_Fb,_Gb,_Hb,_Bb){var _Ib=Math.max(2,Math.round(_Gb/_Fb)),_Jb=new Float32Array(_Ib),_Kb=0,_qa;for(_qa=0;_qa<_Ib;_qa++){var _ka=Math.random()*2-1;_Kb=0.6*_ka+0.4*_Kb;_Jb[_qa]=_Kb;}var _Lb=Math.pow(10,-3/(_Bb*_Fb)),_Mb=0;for(_qa=_Eb;_qa<_Db.length;_qa++){var _Nb=(_Mb+1)%_Ib,_Ja=_Jb[_Mb];_Db[_qa]+=_Ja*_Hb;_Jb[_Mb]=_Lb*(0.85*_Ja+0.15*_Jb[_Nb]);_Mb=_Nb;}}function _Ob(_Pb,_Qb){var _Rb=_zb[_Pb],_Gb=_mb.sampleRate,_Sb=0.3;var _Tb=Math.round(_Gb*(_Rb.period+_Sb));var _Na=_mb.createBuffer(1,_Tb,_Gb),_Qa=_Na.getChannelData(0),_Ab=_Rb.notes.slice(),_qa;if(_Qb)_Ab.reverse();_Ab.forEach(function(_Ga,_Ub){_Cb(_Qa,Math.round(_Ub*_Rb.spread*_Gb),_Ga,_Gb,1,_Rb.sustain);});var _Vb=Math.round(_Gb*0.05),_Wb=Math.round(_Vb/2),_Xb=[],_Yb;for(_Yb=0;_Yb+_Vb<=_Tb;_Yb+=_Wb){var _Zb=0;for(_qa=_Yb;_qa<_Yb+_Vb;_qa++)_Zb+=_Qa[_qa]*_Qa[_qa];_Xb.push(Math.sqrt(_Zb/_Vb));}var _ac=Math.round(0.25*_Gb/_Wb),_bc=_Xb[Math.min(_ac,_Xb.length-1)]||1e-9;var _cc=_Xb.map(function(_Ja,_Ub){if(_Ub<_ac)return 1;return Math.min(6,_bc/Math.max(_Ja,1e-9));});for(_qa=0;_qa<_Tb;_qa++){var _dc=_qa/_Wb,_ec=Math.min(_cc.length-1,Math.floor(_dc)),_fc=Math.min(_cc.length-1,_ec+1);var _ma=Math.min(1,_dc-_ec);_Qa[_qa]*=_cc[_ec]*(1-_ma)+_cc[_fc]*_ma;}var _gc=0;for(_qa=0;_qa<_Tb;_qa++)_gc=Math.max(_gc,Math.abs(_Qa[_qa]));for(_qa=0;_qa<_Tb;_qa++)_Qa[_qa]*=_Rb.level/_gc;var _hc=Math.round(_Gb*_Sb);for(_qa=0;_qa<_hc;_qa++)_Qa[_Tb-1-_qa]*=_qa/_hc;return _Na;}function _ic(_jc,_kc,_lc){var _Ib=_jc.length,_qa,_Yb,_Ub,_Tb;for(_qa=1,_Yb=0;_qa<_Ib;_qa++){var _mc=_Ib>>1;for(;_Yb&_mc;_mc>>=1)_Yb^=_mc;_Yb^=_mc;if(_qa<_Yb){var _ma=_jc[_qa];_jc[_qa]=_jc[_Yb];_jc[_Yb]=_ma;_ma=_kc[_qa];_kc[_qa]=_kc[_Yb];_kc[_Yb]=_ma;}}for(_Tb=2;_Tb<=_Ib;_Tb<<=1){var _nc=2*Math.PI/_Tb*(_lc?1:-1),_oc=Math.cos(_nc),_pc=Math.sin(_nc);for(_qa=0;_qa<_Ib;_qa+=_Tb){var _qc=1,_rc=0;for(_Ub=0;_Ub<_Tb/2;_Ub++){var _sc=_jc[_qa+_Ub],_tc=_kc[_qa+_Ub];var _uc=_jc[_qa+_Ub+_Tb/2]*_qc-_kc[_qa+_Ub+_Tb/2]*_rc;var _vc=_jc[_qa+_Ub+_Tb/2]*_rc+_kc[_qa+_Ub+_Tb/2]*_qc;_jc[_qa+_Ub]=_sc+_uc;_kc[_qa+_Ub]=_tc+_vc;_jc[_qa+_Ub+_Tb/2]=_sc-_uc;_kc[_qa+_Ub+_Tb/2]=_tc-_vc;var _wc=_qc*_oc-_rc*_pc;_rc=_qc*_pc+_rc*_oc;_qc=_wc;}}}}function _xc(_Ya,_Gb){var _Da=4096,_jc=new Float64Array(_Da),_kc=new Float64Array(_Da),_Ub;for(_Ub=0;_Ub<=_Da/2;_Ub++){var _kb=_Xa(Math.max(1,_Ub*_Gb/_Da),_Ya);_jc[_Ub]=_kb[0];_kc[_Ub]=_kb[1];if(_Ub>0&&_Ub<_Da/2){_jc[_Da-_Ub]=_kb[0];_kc[_Da-_Ub]=-_kb[1];}}_kc[_Da/2]=0;_ic(_jc,_kc,true);var _yc=2048,_Na=_mb.createBuffer(1,_yc,_Gb),_Qa=_Na.getChannelData(0),_hc=512;for(_Ub=0;_Ub<_yc;_Ub++){var _Va=_Ub<_yc-_hc?1:0.5*(1+Math.cos(Math.PI*(_Ub-(_yc-_hc))/_hc));_Qa[_Ub]=_jc[_Ub]/_Da*_Va;}return _Na;}function _zc(){_xb=false;_yb=Date.now();if(!_mb||!_wb)return;var _ma=_mb.currentTime,_Ac=_mb.createConvolver(),_Bc=_mb.createGain();_Ac.normalize=false;_Ac.buffer=_xc(_wb,_mb.sampleRate);_Bc.gain.setValueAtTime(0,_ma);_Bc.gain.linearRampToValueAtTime(1,_ma+0.04);_rb.connect(_Ac);_Ac.connect(_Bc);_Bc.connect(_ub.input);if(_sb){var _Cc=_sb,_Dc=_tb;_Dc.gain.setValueAtTime(_Dc.gain.value,_ma);_Dc.gain.linearRampToValueAtTime(0,_ma+0.04);setTimeout(function(){try{_rb.disconnect(_Cc);_Cc.disconnect();_Dc.disconnect();}catch(_Zb){}},120);}_sb=_Ac;_tb=_Bc;}function _Ec(_Ya){_wb=_Ya;if(!_mb||_xb)return;var _Fc=Math.max(0,40-(Date.now()-_yb));_xb=true;setTimeout(_zc,_Fc);}function _Gc(){var _Hc=_mb.createWaveShaper(),_Ib=2048,_Ic=new Float32Array(_Ib),_Jc=2;for(var _qa=0;_qa<_Ib;_qa++){var _Ta=_qa/(_Ib-1)*2-1;_Ic[_qa]=Math.tanh(_Jc*(_Ta+0.08*_Ta*_Ta))/Math.tanh(_Jc);}_Hc.curve=_Ic;_Hc.oversample='4x';var _Kc=_mb.createBiquadFilter();_Kc.type='highpass';_Kc.frequency.value=80;_Kc.Q.value=0.7;var _Lc=_mb.createBiquadFilter();_Lc.type='lowpass';_Lc.frequency.value=7000;_Lc.Q.value=0.6;var _Mc=_mb.createGain();_Mc.gain.value=0.6;_Hc.connect(_Kc);_Kc.connect(_Lc);_Lc.connect(_Mc);return{input:_Hc,master:_Mc};}function _Nc(){if(_mb)return;var _Oc=window.AudioContext||window.webkitAudioContext;_mb=new _Oc();_rb=_mb.createGain();_ub=_Gc();_ub.master.connect(_mb.destination);}function _Pc(_Pb,_Qb){var _Qc=_Pb+(_Qb?'u':'d');if(!_vb[_Qc])_vb[_Qc]=_Ob(_Pb,_Qb);return _vb[_Qc];}function _Rc(){var _Pb=document.getElementById('sound-select').value,_Rb=_zb[_Pb];while(_pb<_mb.currentTime+0.3){var _Sc=_mb.createBufferSource();_Sc.buffer=_Pc(_Pb,_Pb==='chord'&&_qb%2===1);_Sc.connect(_rb);_Sc.start(_pb);_qb++;_pb+=_Rb.period;}}function _Eb(){_Nc();if(_mb.resume)_mb.resume();_zc();_ub.master.gain.cancelScheduledValues(_mb.currentTime);_ub.master.gain.setValueAtTime(0.6,_mb.currentTime);_pb=_mb.currentTime+0.05;_qb=0;_Rc();_ob=setInterval(_Rc,100);_nb=true;}function _Tc(){if(!_nb)return;clearInterval(_ob);_ob=null;_nb=false;var _ma=_mb.currentTime;_ub.master.gain.setValueAtTime(_ub.master.gain.value,_ma);_ub.master.gain.linearRampToValueAtTime(0,_ma+0.15);setTimeout(function(){if(!_nb&&_mb.suspend)_mb.suspend();},250);}return{toggle:function(){if(_nb)_Tc();else _Eb();return _nb;},stop:_Tc,isPlaying:function(){return _nb;},setParams:_Ec,renderOffline:function(_Ya,_Pb,_Uc){var _Vc=[_mb,_rb,_ub,_sb,_tb,_vb,_wb];var _Cc=new OfflineAudioContext(1,Math.round(44100*_Uc),44100);_mb=_Cc;_vb={};_sb=null;_tb=null;_wb=_Ya;_rb=_mb.createGain();_ub=_Gc();_ub.master.connect(_mb.destination);_zc();var _Wc=_zb[_Pb].period,_Xc=0,_Ib=0;for(_Xc=0;_Xc<_Uc;_Xc+=_Wc,_Ib++){var _Sc=_mb.createBufferSource();_Sc.buffer=_Pc(_Pb,_Pb==='chord'&&_Ib%2===1);_Sc.connect(_rb);_Sc.start(_Xc);}var _Yc=_Cc.startRendering();_mb=_Vc[0];_rb=_Vc[1];_ub=_Vc[2];_sb=_Vc[3];_tb=_Vc[4];_vb=_Vc[5];_wb=_Vc[6];return _Yc;}};})();function _Zc(_Ja){return(_Ja/1000).toFixed(1)+' kΩ';}function _ad(_Ta){return(_Ta*10).toFixed(1);}function _bd(_eb){_m.hidden=!_eb;_p.textContent=_ca[_da];_l.forEach(function(_Na){_Na.classList.toggle('active',_Na.getAttribute('data-style')===_da);});if(!_eb)return;var _ka=_eb.recipe;_q.hidden=!_ka.custom;_v.style.display=_da==='cap'?'none':'';_s.textContent=_ga(parseFloat(_r.value)*1e-12);_u.textContent=_t.value+' kΩ';var _cd='',_dd=false;if(_M===500&&_da!=='series'&&_eb.C>=1e-9){_cd='With 500k pots, 1 nF or more can sound thin and harsh. Try 470–680 pF.';_dd=true;}else if(_ka.pot&&_ka.pot!==_M){_cd='This recipe is meant for '+_ka.pot+'k pots. Your pots are '+_M+'k; try a ★ recipe.';_dd=true;}else if(_ka.pot===_M){_cd='★ Suggested for your '+_M+'k pots';}else if(!_ka.custom){_cd='Works with 250k or 500k pots.';}_o.textContent=_cd;_o.classList.toggle('warn',_dd);}function _ed(){var _fd=_M*1000;var _gd=_f.value/100;var _hd=_h.value/100;var _id=_e[parseInt(_a.value,10)];var _cb=_id.uF*1e-6;var _eb=_na();_Q=parseFloat(_j.value);_P=_Q/2500;var _jd=parseInt(_T.value,10);_R=_jd*_S*1e-12;_U.textContent=_jd+' ft · '+Math.round(_jd*_S)+' pF';_X.textContent=Math.round(_jd*_S)+' pF';var _bb=_gd<=0.5?_fd*0.1*(_gd/0.5):_fd*(0.1+0.9*((_gd-0.5)/0.5));var _kd=_Sa(_hd);var _ld={R_t:_bb,C_t:_cb,R_low:Math.max(1,_fd*_kd),R_high:Math.max(1,_fd*(1-_kd)),wiring:_O,bleed:_eb};_x.textContent=_M;_b.textContent=_id.uF.toFixed(3)+' µF';_c.textContent=_id.note;_d.textContent=_id.pot===_M?'★ Classic pairing with your '+_M+'k pots':_id.pot?'Classic pairing is with '+_id.pot+'k pots':'A specialty choice; works with 250k or 500k pots';_k.textContent=_Zc(_Q)+' · ~'+_P.toFixed(1)+' H';_g.textContent=_gd===1?'10.0 (Wide Open)':_gd===0?'0.0 (Fully Dark)':_ad(_gd);_i.textContent=_hd===1?'10.0 (Full)':_hd===0?'0.0 (Off)':_ad(_hd);_B.textContent=_Zc(_Q);_C.textContent=_P.toFixed(1)+' H';_D.textContent=_Zc(_fd);_E.textContent='on '+_ad(_hd);_F.forEach(function(_md){_md.textContent=_Zc(_bb);});_G.forEach(function(_md){_md.textContent=_id.uF.toFixed(3)+' µF';});_I.style.display=_O==='modern'?'':'none';_J.style.display=_O==='fifties'?'':'none';var _nd=!_eb?'none':_eb.Rs?'hybrid':_eb.type;Object.keys(_L).forEach(function(_Ub){_L[_Ub].style.display=_Ub===_nd?'':'none';});_K.style.display=_eb?'':'none';_H.textContent=_eb?_ja(_eb,_eb.type):'';_bd(_eb);_N=_ld;_lb.setParams(_ld);var _od=_Ea.map(function(_Ga){return _jb(_Ga,_ld);});var _Qa='';for(var _qa=0;_qa<_Ea.length;_qa++){_Qa+=(_qa===0?'M':'L')+_Fa(_Ea[_qa]).toFixed(1)+','+_Ha(_od[_qa]).toFixed(1)+' ';}_A.setAttribute('d',_Qa);var _pd=-1;for(var _qd=0;_qd<_Ea.length;_qd++)if(_Ea[_qd]>=500&&(_pd<0||_od[_qd]>_od[_pd]))_pd=_qd;_V.textContent=_hd===0?'':_od[_pd]>_od[0]+0.5?'Resonant peak: '+Math.round(_Ea[_pd]).toLocaleString()+' Hz (+'+(_od[_pd]-_od[0]).toFixed(1)+' dB)':'No noticeable resonant peak at these settings';if(_hd===0){_w.textContent='Muted';return;}var _rd=_od[0],_sd=0;for(var _Yb=1;_Yb<_od.length;_Yb++)if(_od[_Yb]>_od[_sd])_sd=_Yb;var _td=null;for(var _Ub=Math.max(_sd,1);_Ub<_od.length;_Ub++){if(_od[_Ub]<_rd-3){var _ma=(_rd-3-_od[_Ub-1])/(_od[_Ub]-_od[_Ub-1]);_td=_Ea[_Ub-1]*Math.pow(_Ea[_Ub]/_Ea[_Ub-1],isFinite(_ma)?_ma:0);break;}}_w.textContent=_td===null?'> 20,000 Hz':Math.round(_td).toLocaleString()+' Hz';}_a.addEventListener('input',_ed);_f.addEventListener('input',_ed);_h.addEventListener('input',_ed);_j.addEventListener('input',_ed);_l.forEach(function(_ud){_ud.addEventListener('click',function(){_da=_ud.getAttribute('data-style');if(_da!=='none'&&!_fa[_da]){_ea[_da]=_oa(_da);_fa[_da]=true;}_ra();_ed();});});_n.addEventListener('change',function(){_ea[_da]=parseInt(_n.value,10);_ed();});_T.addEventListener('input',_ed);_W.forEach(function(_ud){_ud.addEventListener('click',function(){_W.forEach(function(_Na){_Na.classList.remove('active');});_ud.classList.add('active');_S=parseInt(_ud.getAttribute('data-pf'),10);_ed();});});_r.addEventListener('input',_ed);_t.addEventListener('input',_ed);_y.forEach(function(_ud){_ud.addEventListener('click',function(){_y.forEach(function(_Na){_Na.classList.remove('active');});_ud.classList.add('active');_M=parseInt(_ud.getAttribute('data-value'),10);_ra();_ed();});});_z.forEach(function(_ud){_ud.addEventListener('click',function(){_z.forEach(function(_Na){_Na.classList.remove('active');});_ud.classList.add('active');_O=_ud.getAttribute('data-wiring');_ed();});});var _vd=document.getElementById('play-btn');var _wd=document.getElementById('sound-select');function _xd(_yd){_vd.textContent=_yd?'■ Stop sound':'▶ Play sound';_vd.classList.toggle('on',_yd);_vd.setAttribute('aria-pressed',_yd?'true':'false');}_vd.addEventListener('click',function(){try{_xd(_lb.toggle());}catch(_Zb){_vd.textContent='Sound not supported';_vd.disabled=true;}});_wd.addEventListener('change',function(){if(_lb.isPlaying()){_lb.stop();setTimeout(function(){_xd(_lb.toggle());},200);}});document.addEventListener('visibilitychange',function(){if(document.hidden&&_lb.isPlaying()){_lb.stop();_xd(false);}});window.addEventListener('pagehide',function(){_lb.stop();});if(location.hash==='#audiotest')window.__toneAudio={audio:_lb,transfer:_Xa,params:function(){return _N;}};var _zd=document.getElementById('setup-fold');var _Ad=document.getElementById('fold-hint');var _Bd=document.getElementById('done-btn');function _Cd(){_Ad.textContent=_zd.open?'Tap here to close and use the knobs':'Tap to change pickup, pots, cap and wiring';}_zd.addEventListener('toggle',_Cd);var _Ed=document.querySelectorAll('#tone-sim .tab-btn');var _Fd=document.getElementById('circuit-caption');var _Gd={pickup:'Lit: the pickup. Its coil has resistance and inductance; the inductance sets where the treble peak sits.',pots:'Lit: the volume and tone pots and the tone cap. Pot value sets how much the controls load the pickup; the cap sets where the tone knob cuts.',wiring:'Lit: the tone circuit and the treble bleed. Wiring moves the tone circuit to either side of the volume pot; the bleed lets treble skip past it.',cable:'Lit: the cable. Its capacitance and the pickup\'s inductance form the resonant peak.'};function _Hd(_Z){_zd.setAttribute('data-tab',_Z);_Ed.forEach(function(_Na){var _yd=_Na.getAttribute('data-tab')===_Z;_Na.classList.toggle('active',_yd);_Na.setAttribute('aria-selected',_yd?'true':'false');document.getElementById('tab-'+_Na.getAttribute('data-tab')).hidden=!_yd;});_Fd.textContent=_Gd[_Z];}_Ed.forEach(function(_Na){_Na.addEventListener('click',function(){_Hd(_Na.getAttribute('data-tab'));});});document.querySelectorAll('#tone-sim .hit rect').forEach(function(_ka){_ka.addEventListener('click',function(){_Hd(_ka.getAttribute('data-goto'));});});_Hd('pickup');_Bd.addEventListener('click',function(){_zd.open=false;_Cd();try{document.getElementById('tone-sim').scrollIntoView({behavior:'smooth',block:'start'});}catch(_Zb){}});_Cd();var _Id=document.getElementById('help-btn');var _Jd=document.getElementById('help-panel');_Id.addEventListener('click',function(){var _Dd=_Jd.hidden;_Jd.hidden=!_Dd;_Id.setAttribute('aria-expanded',_Dd?'true':'false');_Id.textContent=_Dd?'✕ Close':'ⓘ How to use';});_ed();})();
 </script>
 </body>
 </html>
