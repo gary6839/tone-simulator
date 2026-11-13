@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tone Sim">
+<title>Guitar Tone Filter Simulator · G$ Luthier Services</title>
+<!-- (c) 2026 G$ Luthier Services. All rights reserved. -->
+<style>
+  body { margin: 0; background: #111111; }
+  #tone-sim { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 10px; color: #eeeeee; box-sizing: border-box; }
+  #tone-sim * { box-sizing: border-box; }
+  #tone-sim .container { background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px solid #2a2a2a; }
+  #tone-sim h1 { margin: 0 0 10px; color: #fff; font-size: 1.6rem; }
+  #tone-sim .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; background: #252525; padding: 20px; border-radius: 8px; border: 1px solid #333; }
+  @media (max-width: 600px) { #tone-sim .controls { grid-template-columns: 1fr; } }
+  #tone-sim .control-group { display: flex; flex-direction: column; }
+  #tone-sim label { font-weight: 600; margin-bottom: 8px; display: flex; flex-wrap: wrap; justify-content: space-between; column-gap: 10px; color: #fff; }
+  #tone-sim .value-display { color: #f39c12; font-family: monospace; font-size: 1rem; }
+  #tone-sim .pot-toggle { display: flex; gap: 10px; }
+  #tone-sim .pot-btn, #tone-sim .wire-btn { flex: 1; padding: 10px; border: 2px solid #444; background: #1a1a1a; color: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s ease; }
+  #tone-sim .pot-btn.active, #tone-sim .wire-btn.active { border-color: #f39c12; background: #332308; color: #f39c12; }
+  #tone-sim select { width: 100%; padding: 10px; border: 2px solid #444; background: #1a1a1a; color: #eee; border-radius: 6px; font-weight: bold; font-size: 0.9rem; }
+  #tone-sim input[type="range"] { width: 100%; margin-bottom: 5px; accent-color: #f39c12; }
+  #tone-sim small { color: #999; }
+  #tone-sim .readout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+  #tone-sim .readout { font-size: 1rem; font-weight: bold; text-align: center; padding: 10px; background: #2a2215; color: #f1c40f; border-radius: 6px; border: 1px solid #f39c12; }
+  #tone-sim .graph-wrapper { background: #151515; border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+  #tone-sim .graph-title { text-align: center; font-weight: bold; color: #fff; margin-bottom: 10px; font-size: 0.9rem; }
+  #tone-sim .tick-row { display: flex; justify-content: space-between; font-size: 0.7rem; color: #777; margin-top: 2px; }
+  #tone-sim .knobs { border-color: #f39c12; }
+  #tone-sim .back-link { display: inline-block; color: #f39c12; text-decoration: none; font-weight: bold; font-size: 0.9rem; padding: 4px 0; margin-bottom: 8px; }
+  #tone-sim .back-link:hover, #tone-sim .back-link:active { text-decoration: underline; }
+  #tone-sim .footer-links { text-align: center; margin-top: 16px; }
+  #tone-sim .footer-links .back-link { margin-bottom: 0; }
+  #tone-sim .audio-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+  #tone-sim .play-btn { flex: none; padding: 10px 16px; border: 2px solid #f39c12; background: #f39c12; color: #1a1a1a; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+  #tone-sim .play-btn.on { background: #332308; color: #f39c12; }
+  #tone-sim .audio-bar select { width: auto; flex: 1; min-width: 140px; }
+  #tone-sim .audio-note { flex-basis: 100%; }
+  #tone-sim .header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  #tone-sim .header h1 { margin: 0; }
+  #tone-sim .help-btn { flex: none; padding: 7px 12px; border: 2px solid #f39c12; background: #332308; color: #f39c12; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+  #tone-sim .help-btn[aria-expanded="true"] { background: #f39c12; color: #1a1a1a; }
+  #tone-sim .help-panel { background: #252525; border: 1px solid #f39c12; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; color: #ccc; font-size: 0.9rem; line-height: 1.45; }
+  #tone-sim .help-panel ul { margin: 0 0 8px; padding-left: 18px; }
+  #tone-sim .help-panel li { margin-bottom: 6px; }
+  #tone-sim .help-panel b { color: #fff; }
+  #tone-sim .help-panel p { margin: 0; color: #999; font-size: 0.8rem; }
+  #tone-sim .fold { border: 1px solid #333; border-radius: 8px; background: #202020; margin-bottom: 12px; }
+  #tone-sim .fold > summary { cursor: pointer; list-style: none; padding: 14px 16px; font-weight: bold; color: #fff; font-size: 1.05rem; display: flex; align-items: baseline; gap: 10px; }
+  #tone-sim .fold > summary::-webkit-details-marker { display: none; }
+  #tone-sim .fold > summary::before { content: "▸"; color: #f39c12; transition: transform 0.2s; display: inline-block; }
+  #tone-sim .fold[open] > summary::before { transform: rotate(90deg); }
+  #tone-sim .fold { border-color: #f39c12; }
+  #tone-sim .fold > summary { flex-wrap: wrap; }
+  #tone-sim .fold-hint { font-weight: normal; font-size: 0.85rem; color: #f39c12; }
+  #tone-sim .fold-tip { background: #2a2215; border-left: 3px solid #f39c12; border-radius: 4px; padding: 10px 12px; margin-bottom: 14px; color: #ddd; font-size: 0.85rem; line-height: 1.4; }
+  #tone-sim .done-btn { width: 100%; padding: 12px; border: 2px solid #f39c12; background: #f39c12; color: #1a1a1a; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+  #tone-sim .fold-body { padding: 0 12px 12px; }
+  #tone-sim .bleed-toggle { gap: 6px; }
+  #tone-sim .cap-btn { flex: 1; min-width: 0; padding: 8px 4px; border: 2px solid #444; background: #1a1a1a; color: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; line-height: 1.2; transition: all 0.2s ease; }
+  #tone-sim .cap-btn.active { border-color: #f39c12; background: #332308; color: #f39c12; }
+  #tone-sim .cap-btn.active .btn-sub { color: #f39c12; }
+  #tone-sim .cable-btn { flex: 1; min-width: 0; padding: 8px 4px; border: 2px solid #444; background: #1a1a1a; color: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 1.2; transition: all 0.2s ease; }
+  #tone-sim .cable-btn.active { border-color: #f39c12; background: #332308; color: #f39c12; }
+  #tone-sim .cable-btn.active .btn-sub { color: #f39c12; }
+  #tone-sim .bleed-btn { flex: 1; min-width: 0; padding: 8px 4px; border: 2px solid #444; background: #1a1a1a; color: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 1.2; transition: all 0.2s ease; }
+  #tone-sim .bleed-btn.active { border-color: #f39c12; background: #332308; color: #f39c12; }
+  #tone-sim .btn-sub { display: block; font-size: 0.7rem; font-weight: normal; color: #999; }
+  #tone-sim .bleed-btn.active .btn-sub { color: #f39c12; }
+  #tone-sim .recipe-row { margin-top: 12px; }
+  #tone-sim .recipe-row[hidden], #tone-sim .bleed-custom[hidden] { display: none; }
+  #tone-sim .recipe-label { margin-bottom: 6px; }
+  #tone-sim .bleed-suggest { font-size: 0.8rem; color: #f1c40f; margin-top: 6px; min-height: 1em; }
+  #tone-sim .bleed-suggest.warn { color: #ff9f7a; }
+  #tone-sim .bleed-custom { margin-top: 12px; padding: 12px; border: 1px dashed #555; border-radius: 6px; }
+  #tone-sim .cap-pair { font-size: 0.8rem; color: #f1c40f; margin-top: 6px; min-height: 1em; }
+  #tone-sim .tab-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+  #tone-sim .tab-btn { flex: 1; min-width: 0; padding: 9px 4px; border: 2px solid #444; background: #1a1a1a; color: #ccc; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 1.2; }
+  #tone-sim .tab-btn.active { border-color: #f39c12; background: #f39c12; color: #1a1a1a; }
+  #tone-sim .tab-panel[hidden] { display: none; }
+  #tone-sim .circuit-wrapper { margin-bottom: 12px; }
+  #tone-sim .circuit-caption { text-align: center; color: #bbb; font-size: 0.8rem; margin-top: 8px; line-height: 1.35; }
+  #tone-sim .circuit-wrapper svg path, #tone-sim .circuit-wrapper svg circle, #tone-sim .pickup-box { transition: stroke 0.2s, stroke-width 0.2s; }
+  #setup-fold[data-tab="pickup"] .part-pickup,
+  #setup-fold[data-tab="pots"] .part-vol, #setup-fold[data-tab="pots"] .part-tone,
+  #setup-fold[data-tab="wiring"] .part-tone, #setup-fold[data-tab="wiring"] .part-bleed,
+  #setup-fold[data-tab="cable"] .part-cable { stroke: #f39c12; stroke-width: 3.5; }
+  #tone-sim .hit rect { cursor: pointer; }
+  @media (max-width: 600px) {
+    #tone-sim .circuit-wrapper { padding: 6px 6px 4px; margin-bottom: 8px; }
+    #tone-sim .circuit-wrapper .graph-title { margin-bottom: 4px; }
+    #tone-sim .tab-bar { gap: 4px; margin-bottom: 6px; }
+    #tone-sim .tab-btn { padding: 6px 2px; font-size: 0.8rem; }
+    #tone-sim .tab-panel .controls { padding: 10px 12px; gap: 10px; margin-bottom: 8px; }
+    #tone-sim .tab-panel label { margin-bottom: 6px; }
+    #tone-sim .group-split { padding-top: 10px; }
+  }
+  @media (max-width: 600px) {
+    /* Phones: Setup takes the whole screen; the front panel (graph, sound, knobs) comes back when Setup closes */
+    #tone-sim.setup-mode .pin-top, #tone-sim.setup-mode .audio-bar, #tone-sim.setup-mode .knobs { display: none; }
+    #tone-sim.setup-mode .fold-hint { display: none; }   /* the Done button says the same */
+  }
+  #tone-sim .why-row { text-align: center; margin-top: 8px; }
+  #tone-sim .learn-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: fit-content; max-width: 100%; margin: 0 auto 6px; padding: 9px 14px; border: 2px solid #f39c12; background: #332308; color: #f39c12; border-radius: 8px; font-weight: bold; font-size: 0.9rem; text-align: left; cursor: pointer; }
+  #tone-sim .learn-i { font-size: 1.05rem; }
+  #tone-sim .learn-arrow { font-size: 1.3rem; line-height: 1; }
+  #tone-sim .why-btn { padding: 7px 14px; border: 2px solid #f39c12; background: #332308; color: #f39c12; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
+  #tone-sim .why-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 20; }
+  #tone-sim .why-sheet { position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 800px; max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #202020; border-top: 3px solid #f39c12; border-radius: 14px 14px 0 0; z-index: 21; color: #ccc; }
+  #tone-sim .why-backdrop[hidden], #tone-sim .why-sheet[hidden], #tone-sim .why-body section[hidden] { display: none; }
+  #tone-sim .why-head { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: #202020; border-bottom: 1px solid #333; }
+  #tone-sim .why-head h2 { margin: 0; font-size: 1.1rem; color: #fff; }
+  #tone-sim .why-close { flex: none; padding: 7px 12px; border: 2px solid #f39c12; background: #f39c12; color: #1a1a1a; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; }
+  #tone-sim .why-body { padding: 4px 16px 20px; font-size: 0.95rem; line-height: 1.5; }
+  #tone-sim .why-body h3 { margin: 16px 0 4px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #f39c12; }
+  #tone-sim .why-body p { margin: 0 0 8px; }
+  #tone-sim .why-body ul { margin: 0 0 8px; padding-left: 20px; }
+  #tone-sim .why-body li { margin-bottom: 4px; }
+  #tone-sim .why-body b { color: #fff; }
+  #tone-sim .why-foot { margin-top: 16px !important; font-size: 0.8rem; color: #888; }
+  #tone-sim .wire-btn { line-height: 1.2; }
+  #tone-sim .wire-btn.active .btn-sub { color: #f39c12; }
+  #tone-sim .group-split { border-top: 1px solid #3a3a3a; padding-top: 8px; }
+  #tone-sim .setup-readout { text-align: center; font-weight: bold; font-size: 0.85rem; color: #f1c40f; background: #2a2215; border: 1px solid #f39c12; border-radius: 6px; padding: 6px 8px; margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+  /* Wide screens (computers, landscape tablets): front panel on the left, Setup always open on the right */
+  @media (min-width: 1000px) {
+    #tone-sim { max-width: 1320px; }
+    #tone-sim .container { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 24px; align-items: start; }
+    #tone-sim .container > .back-link, #tone-sim .header, #tone-sim .help-panel, #tone-sim .footer-links, #tone-sim .copyright { grid-column: 1 / -1; }
+    #tone-sim .front-col { grid-column: 1; position: sticky; top: 10px; }
+    #tone-sim .fold { grid-column: 2; margin-bottom: 0; }
+    #tone-sim .fold > summary { cursor: default; }
+    #tone-sim .fold > summary::before, #tone-sim .fold-hint, #tone-sim .done-btn { display: none; }
+    #tone-sim .graph-wrapper { margin-bottom: 14px; }
+    #tone-sim .why-sheet { max-width: 760px; }
+    #tone-sim .setup-knob { display: none; }   /* the front-panel knobs are right beside Setup */
+  }
+  #tone-sim .copyright { text-align: center; color: #777; font-size: 0.75rem; margin-top: 10px; }
+  @media (max-width: 600px) {
+    #tone-sim { padding: 0; }
+    #tone-sim .container { padding: 12px; border-radius: 0; border: none; }
+    #tone-sim h1 { font-size: 1.15rem; }
+    #tone-sim .help-btn { padding: 6px 10px; font-size: 0.8rem; }
+    #tone-sim .controls { padding: 14px; gap: 14px; margin-bottom: 14px; }
+    #tone-sim .graph-wrapper { padding: 8px; margin-bottom: 12px; }
+    #tone-sim .readout-grid { gap: 8px; margin-bottom: 12px; }
+    #tone-sim .readout { font-size: 0.85rem; padding: 8px 4px; }
+    #tone-sim .response-graph text { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="tone-sim">
+  <div class="container">
+    <a class="back-link" href="https://www.boulderluthier.com/home">← Back to the shop</a>
+    <div class="header">
+      <h1>Guitar Tone Filter Simulator</h1>
+      <button type="button" class="help-btn" id="help-btn" aria-expanded="false" aria-controls="help-panel">ⓘ How to use</button>
+    </div>
+    <div class="help-panel" id="help-panel" hidden>
+      <ul>
+        <li><b>Set up your guitar.</b> Tap <b>Setup &amp; Circuit</b> and work through its four tabs: Pickup, Pots &amp; Cap, Wiring &amp; Bleed and Cable. The circuit drawing lights up the part each tab changes; tap a part of the drawing to jump to its tab.</li>
+        <li><b>Watch the graph.</b> The curve shows how strongly each frequency reaches the amp; where it drops on the right, treble is being cut. <b>Cutoff</b> is where the treble is 3 dB down: lower means darker.</li>
+        <li><b>★ marks a classic match</b> for your pot value, for the tone cap and for treble bleed recipes.</li>
+        <li><b>Tap the ⓘ button above the circuit</b> (for example, "How pots &amp; caps shape your tone") for a fuller explanation of the open tab, with something to try.</li>
+        <li><b>On a computer, Setup sits beside the graph</b> and stays open. <b>On a phone, Setup takes the whole screen.</b> Tap Done or the Setup header to go back to the graph and knobs. Start the sound first and it keeps playing in Setup, so you can hear each change. The Peak and Cutoff line above the tabs updates as you change parts, and the Pots &amp; Cap and Wiring &amp; Bleed tabs have their own Tone and Volume knobs, the same ones as on the front panel.</li>
+        <li><b>Press Play</b> and move the Tone and Volume knobs. You'll hear a slightly overdriven guitar: rolling Tone down smooths the fizz, and rolling Volume down cleans up the distortion, like a real guitar into a driven amp. On iPhone, turn off silent mode.</li>
+      </ul>
+      <p>This is a simplified model. Real guitars vary with the amp and component tolerances, but the trends match what players hear.</p>
+    </div>
+    <div class="front-col">
+    <div class="pin-top" id="pin-top">
+      <div class="graph-wrapper">
+        <div class="graph-title">Frequency Response (dB)</div>
+        <svg class="response-graph" viewBox="0 0 600 300" style="width:100%; height:auto; display:block;">
+          <line x1="50" y1="10" x2="550" y2="10" stroke="#333" />
+          <line x1="50" y1="73.3" x2="550" y2="73.3" stroke="#555" />
+          <line x1="50" y1="136.7" x2="550" y2="136.7" stroke="#252525" stroke-dasharray="4" />
+          <line x1="50" y1="200" x2="550" y2="200" stroke="#252525" stroke-dasharray="4" />
+          <line x1="50" y1="263.3" x2="550" y2="263.3" stroke="#555" />
+          <line x1="50" y1="10" x2="50" y2="263.3" stroke="#555" />
+          <line x1="166.3" y1="10" x2="166.3" y2="263.3" stroke="#252525" stroke-dasharray="4" />
+          <line x1="333.3" y1="10" x2="333.3" y2="263.3" stroke="#252525" stroke-dasharray="4" />
+          <line x1="499.6" y1="10" x2="499.6" y2="263.3" stroke="#252525" stroke-dasharray="4" />
+          <text x="50" y="282" fill="#999" font-size="10" text-anchor="middle">20Hz</text>
+          <text x="166.3" y="282" fill="#999" font-size="10" text-anchor="middle">100Hz</text>
+          <text x="333.3" y="282" fill="#999" font-size="10" text-anchor="middle">1kHz</text>
+          <text x="499.6" y="282" fill="#999" font-size="10" text-anchor="middle">10kHz</text>
+          <text x="550" y="282" fill="#999" font-size="10" text-anchor="middle">20kHz</text>
+          <text x="42" y="14" fill="#999" font-size="10" text-anchor="end">+20</text>
+          <text x="42" y="77" fill="#999" font-size="10" text-anchor="end">0</text>
+          <text x="42" y="141" fill="#999" font-size="10" text-anchor="end">-20</text>
+          <text x="42" y="204" fill="#999" font-size="10" text-anchor="end">-40</text>
+          <text x="42" y="267" fill="#999" font-size="10" text-anchor="end">-60</text>
+          <path id="curvePath" d="" fill="none" stroke="#f39c12" stroke-width="3" />
+        </svg>
+      </div>
+      <div class="readout-grid">
+        <div class="readout">Pot Resistance: <span id="r-readout">250</span> kΩ</div>
+        <div class="readout">Cutoff (−3 dB): <span id="fc-readout">--</span></div>
+      </div>
+    </div>
+    <div class="audio-bar">
+      <button type="button" class="play-btn" id="play-btn" aria-pressed="false">▶ Play sound</button>
+      <select id="sound-select" aria-label="Sound">
+        <option value="power">Power chord</option>
+        <option value="chord">Open E chord</option>
+        <option value="note">Single note</option>
+      </select>
+      <small class="audio-note">Press Play, then move the Tone and Volume knobs to hear the difference. On iPhone, turn off silent mode. Headphones help.</small>
+    </div>
+    <div class="controls knobs">
+      <div class="control-group">
+        <label>Tone Knob <span class="value-display" id="k-val">10.0 (Wide Open)</span></label>
+        <input type="range" id="toneKnob" min="0" max="100" value="100">
+        <small>10 is wide open (brightest); 0 is fully rolled off (darkest).</small>
+      </div>
+      <div class="control-group">
+        <label>Volume Knob <span class="value-display" id="v-val">10.0 (Full)</span></label>
+        <input type="range" id="volKnob" min="0" max="100" value="100">
+        <small>Audio-taper pot. Rolling it down dulls the treble. Try a treble bleed under Setup to counter it.</small>
+      </div>
+    </div>
+    </div>
+    <details class="fold" id="setup-fold" data-tab="pickup">
+      <summary><span class="fold-title">Setup &amp; Circuit</span> <span class="fold-hint" id="fold-hint">Tap to change pickup, pots, cap and wiring</span></summary>
+      <div class="fold-body">
+        <div class="setup-readout" id="setup-readout" aria-live="polite"></div>
+        <div class="tab-bar" role="tablist" aria-label="Setup sections">
+          <button type="button" class="tab-btn active" role="tab" id="tabbtn-pickup" aria-selected="true" aria-controls="tab-pickup" data-tab="pickup">Pickup</button>
+          <button type="button" class="tab-btn" role="tab" id="tabbtn-pots" aria-selected="false" aria-controls="tab-pots" data-tab="pots">Pots &amp; Cap</button>
+          <button type="button" class="tab-btn" role="tab" id="tabbtn-wiring" aria-selected="false" aria-controls="tab-wiring" data-tab="wiring">Wiring &amp; Bleed</button>
+          <button type="button" class="tab-btn" role="tab" id="tabbtn-cable" aria-selected="false" aria-controls="tab-cable" data-tab="cable">Cable</button>
+        </div>
+    <div class="graph-wrapper circuit-wrapper">
+      <div class="graph-title">Circuit Model</div>
+      <button type="button" class="learn-btn" id="why-btn" aria-haspopup="dialog" aria-controls="why-sheet"><span class="learn-i" aria-hidden="true">ⓘ</span> <span id="why-label">How the pickup shapes your tone</span> <span class="learn-arrow" aria-hidden="true">›</span></button>
+      <svg viewBox="0 0 680 270" style="width:100%; height:auto; display:block;" font-family="sans-serif">
+        <g stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="50" cy="160" r="25" class="part-pickup" />
+          <path d="M38,160 q6,-12 12,0 t12,0" stroke="#f39c12" />
+          <path d="M50,80 L50,135" />
+          <path d="M50,185 L50,240" />
+          <path d="M50,80 L80,80" />
+          <path class="part-pickup" d="M80,80 L86,80 L91,68 L101,92 L111,68 L121,92 L129,68 L134,80 L140,80" />
+          <path class="part-pickup" d="M140,80 L150,80 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 a10,10 0 0 1 20,0 L260,80" />
+          <path d="M260,80 L400,80" />
+          <path class="part-vol" d="M400,80 L400,115 L390,121 L410,133 L390,145 L410,157 L390,169 L400,175 L400,240" />
+          <path class="part-vol" d="M460,80 L460,145 L412,145 M420,140 L412,145 L420,150" />
+          <path d="M460,80 L640,80 M632,74 L640,80 L632,86" />
+          <path class="part-cable" d="M520,80 L520,150 M505,150 L535,150 M505,160 L535,160 M520,160 L520,240" />
+          <path d="M50,240 L520,240" />
+          <path d="M230,240 L230,250 M217,250 L243,250 M222,256 L238,256 M227,262 L233,262" />
+        </g>
+        <g id="tone-modern">
+          <path class="part-tone" stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+            d="M300,80 L300,100 L290,106 L310,118 L290,130 L310,142 L290,154 L300,160 L300,185 M285,185 L315,185 M285,195 L315,195 M300,195 L300,240" />
+          <circle cx="300" cy="80" r="3.5" fill="#cfcfcf" />
+          <path class="part-tone" stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+            d="M284,152 L318,104 M316.5,112.9 L318,104 L310.1,108.4" />
+          <circle cx="300" cy="240" r="3.5" fill="#cfcfcf" />
+          <text x="320" y="125" fill="#999" font-size="11">Tone pot</text>
+          <text x="320" y="139" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-rt">250.0 kΩ</text>
+          <text x="320" y="153" fill="#999" font-size="11" class="lbl-tset">on 10.0</text>
+          <text x="320" y="188" fill="#999" font-size="11">Tone cap</text>
+          <text x="320" y="202" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-ct">0.047 µF</text>
+        </g>
+        <g id="tone-fifties" style="display:none">
+          <path class="part-tone" stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+            d="M520,240 L600,240 M600,80 L600,100 L590,106 L610,118 L590,130 L610,142 L590,154 L600,160 L600,185 M585,185 L615,185 M585,195 L615,195 M600,195 L600,240" />
+          <circle cx="600" cy="80" r="3.5" fill="#cfcfcf" />
+          <path class="part-tone" stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+            d="M584,152 L618,104 M616.5,112.9 L618,104 L610.1,108.4" />
+          <circle cx="600" cy="240" r="3.5" fill="#cfcfcf" />
+          <text x="620" y="125" fill="#999" font-size="11">Tone pot</text>
+          <text x="620" y="139" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-rt">250.0 kΩ</text>
+          <text x="620" y="153" fill="#999" font-size="11" class="lbl-tset">on 10.0</text>
+          <text x="620" y="188" fill="#999" font-size="11">Tone cap</text>
+          <text x="620" y="202" fill="#f1c40f" font-size="11" font-weight="bold" class="lbl-ct">0.047 µF</text>
+        </g>
+        <g stroke="#cfcfcf" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path class="part-bleed" id="bleed-cap" style="display:none"
+            d="M380,80 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80" />
+          <path class="part-bleed" id="bleed-parallel" style="display:none"
+            d="M380,80 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80 M380,45 L380,20 L398,20 L403,12 L411,28 L419,12 L427,28 L435,12 L443,28 L451,12 L456,20 L480,20 L480,45" />
+          <path class="part-bleed" id="bleed-hybrid" style="display:none"
+            d="M380,80 L380,76 L373,73 L387,67 L373,61 L387,55 L380,52 L380,45 L426,45 M426,35 L426,55 M434,35 L434,55 M434,45 L480,45 L480,80 M380,45 L380,20 L398,20 L403,12 L411,28 L419,12 L427,28 L435,12 L443,28 L451,12 L456,20 L480,20 L480,45" />
+          <path class="part-bleed" id="bleed-series" style="display:none"
+            d="M380,80 L380,45 L395,45 M395,35 L395,55 M403,35 L403,55 M403,45 L412,45 L417,37 L425,53 L433,37 L441,53 L449,37 L454,45 L480,45 L480,80" />
+        </g>
+        <g id="bleed-labels" style="display:none">
+          <circle cx="380" cy="80" r="3.5" fill="#cfcfcf" />
+          <circle cx="480" cy="80" r="3.5" fill="#cfcfcf" />
+          <text x="490" y="40" fill="#999" font-size="11">Treble bleed</text>
+          <text x="490" y="54" fill="#f1c40f" font-size="11" font-weight="bold" id="lbl-tb">1 nF</text>
+        </g>
+        <g fill="#cfcfcf">
+          <circle cx="520" cy="80" r="3.5" />
+          <circle cx="400" cy="240" r="3.5" />
+          <circle cx="520" cy="240" r="3.5" />
+        </g>
+        <rect class="part-pickup pickup-box" x="16" y="54" width="244" height="142" rx="6" fill="none" stroke="#555" stroke-dasharray="4" />
+        <g fill="#999" font-size="11">
+          <text x="20" y="50">Pickup (one coil)</text>
+          <text x="640" y="70" text-anchor="end">To amp</text>
+          <text x="82" y="164">String</text>
+          <text x="82" y="177">signal</text>
+          <text x="540" y="152">Cable</text>
+          <text x="410" y="195">Volume pot</text>
+        </g>
+        <g fill="#f1c40f" font-size="11" font-weight="bold">
+          <text x="110" y="108" text-anchor="middle" id="lbl-rp">6.0 kΩ</text>
+          <text x="190" y="108" text-anchor="middle" id="lbl-l">2.4 H</text>
+          <text x="540" y="166" id="lbl-cable">450 pF</text>
+          <text x="410" y="209" id="lbl-rvol">250.0 kΩ</text>
+          <text x="410" y="223" id="lbl-vset" fill="#999" font-weight="normal">on 10.0</text>
+        </g>
+        <g class="hit" fill="transparent">
+          <rect data-goto="pickup" x="15" y="38" width="250" height="175" />
+          <rect data-goto="pots" x="280" y="92" width="95" height="125" />
+          <rect data-goto="pots" x="380" y="95" width="95" height="135" />
+          <rect data-goto="wiring" x="368" y="4" width="200" height="66" />
+          <rect data-goto="cable" x="498" y="132" width="78" height="85" />
+          <rect data-goto="pots" x="580" y="92" width="100" height="125" />
+        </g>
+      </svg>
+    </div>
+        <div class="tab-panel" id="tab-pickup" role="tabpanel" aria-labelledby="tabbtn-pickup">
+    <div class="controls" style="grid-template-columns:1fr; margin-bottom:15px;">
+      <div class="control-group">
+        <label>Pickup DC Resistance <span class="value-display" id="p-val">6.0 kΩ · ~2.4 H</span></label>
+        <input type="range" id="pickup" min="4000" max="16000" step="100" value="6000">
+        <div class="tick-row"><span>4k</span><span>6k Strat/Tele</span><span>8k P-90</span><span>10k+ Humbucker</span><span>16k</span></div>
+        <small style="margin-top:6px;">Typical: single coil 5–7k, P-90 ~8k, humbucker 7–16k. Higher = thicker, darker.</small>
+      </div>
+    </div>
+        </div>
+        <div class="tab-panel" id="tab-pots" role="tabpanel" aria-labelledby="tabbtn-pots" hidden>
+    <div class="controls" style="grid-template-columns:1fr;">
+      <div class="control-group">
+        <label>Potentiometer Type</label>
+        <div class="pot-toggle">
+          <button type="button" class="pot-btn active" data-value="250">250 kΩ</button>
+          <button type="button" class="pot-btn" data-value="500">500 kΩ</button>
+        </div>
+        <small style="margin-top:6px;">Both pots. 500k sounds brighter than 250k.</small>
+      </div>
+      <div class="control-group group-split">
+        <label>Tone Cap <span class="value-display" id="c-val">0.047 µF</span></label>
+        <div class="pot-toggle" role="group" aria-label="Tone cap" aria-describedby="cap-note">
+          <button type="button" class="cap-btn" data-cap="0">.015<span class="btn-sub">vocal</span></button>
+          <button type="button" class="cap-btn" data-cap="1">.022<span class="btn-sub">Gibson</span></button>
+          <button type="button" class="cap-btn active" data-cap="2">.047<span class="btn-sub">Fender</span></button>
+        </div>
+        <div class="cap-pair" id="cap-pair"></div>
+        <small id="cap-note" style="margin-top:4px;"></small>
+      </div>
+      <div class="control-group group-split setup-knob">
+        <label for="toneKnob2">Tone Knob <span class="value-display" id="k-val2">10.0</span></label>
+        <input type="range" id="toneKnob2" min="0" max="100" value="100">
+        <small>Same knob as on the front panel.</small>
+      </div>
+    </div>
+        </div>
+        <div class="tab-panel" id="tab-wiring" role="tabpanel" aria-labelledby="tabbtn-wiring" hidden>
+    <div class="controls" style="grid-template-columns:1fr;">
+      <div class="control-group">
+        <label>Wiring</label>
+        <div class="pot-toggle">
+          <button type="button" class="wire-btn active" data-wiring="modern">Modern<span class="btn-sub">tone before volume</span></button>
+          <button type="button" class="wire-btn" data-wiring="fifties">50s<span class="btn-sub">tone after volume</span></button>
+        </div>
+      </div>
+      <div class="control-group group-split">
+        <label>Treble Bleed</label>
+        <div class="pot-toggle bleed-toggle">
+          <button type="button" class="bleed-btn active" data-style="none">None</button>
+          <button type="button" class="bleed-btn" data-style="cap">Cap only</button>
+          <button type="button" class="bleed-btn" data-style="parallel">Parallel<span class="btn-sub">Duncan</span></button>
+          <button type="button" class="bleed-btn" data-style="series">Series<span class="btn-sub">Kinman</span></button>
+        </div>
+        <div id="bleed-recipe-row" class="recipe-row" hidden>
+          <select id="bleed-recipe" aria-label="Treble bleed recipe"></select>
+          <div class="bleed-suggest" id="bleed-suggest"></div>
+          <div id="bleed-custom" class="bleed-custom" hidden>
+            <label for="tb-cap">Cap <span class="value-display" id="tb-cap-val">1000 pF</span></label>
+            <input type="range" id="tb-cap" min="150" max="2200" step="10" value="1000">
+            <div id="tb-res-group">
+              <label for="tb-res">Resistor <span class="value-display" id="tb-res-val">150 kΩ</span></label>
+              <input type="range" id="tb-res" min="47" max="330" step="1" value="150">
+            </div>
+          </div>
+        </div>
+        <small style="margin-top:8px;" id="bleed-note">No bleed: treble fades as the volume drops.</small>
+      </div>
+      <div class="control-group group-split setup-knob">
+        <label for="volKnob2">Volume Knob <span class="value-display" id="v-val2">10.0</span></label>
+        <input type="range" id="volKnob2" min="0" max="100" value="100">
+        <small>Same knob as on the front panel.</small>
+      </div>
+    </div>
+        </div>
+        <div class="tab-panel" id="tab-cable" role="tabpanel" aria-labelledby="tabbtn-cable" hidden>
+    <div class="controls" style="grid-template-columns:1fr;">
+      <div class="control-group">
+        <label>Cable</label>
+        <div class="pot-toggle">
+          <button type="button" class="cable-btn" data-pf="20">Low-cap<span class="btn-sub">20 pF/ft</span></button>
+          <button type="button" class="cable-btn active" data-pf="30">Typical<span class="btn-sub">30 pF/ft</span></button>
+          <button type="button" class="cable-btn" data-pf="50">High-cap<span class="btn-sub">~50 pF/ft</span></button>
+        </div>
+        <label for="cable-len" style="margin-top:14px;">Length <span class="value-display" id="cable-val">15 ft · 450 pF</span></label>
+        <input type="range" id="cable-len" min="3" max="30" step="1" value="15">
+        <div class="tick-row"><span>3 ft</span><span>30 ft</span></div>
+        <small style="margin-top:6px;">Longer or higher-capacitance cable = lower peak, less treble.</small>
+      </div>
+    </div>
+        </div>
+        <button type="button" class="done-btn" id="done-btn">✓ Done: back to the graph and knobs</button>
+      </div>
+    </details>
+    <div class="footer-links"><a class="back-link" href="https://www.boulderluthier.com/home">← Back to the shop</a></div>
+    <div class="copyright">© 2026 G$ Luthier Services. All rights reserved.</div>
+    <div class="why-backdrop" id="why-backdrop" hidden></div>
+    <div class="why-sheet" id="why-sheet" role="dialog" aria-modal="true" aria-labelledby="why-title" hidden>
+      <div class="why-head">
+        <h2 id="why-title">Why?</h2>
+        <button type="button" class="why-close" id="why-close">✕ Close</button>
+      </div>
+      <div class="why-body">
+        <section data-why="pickup" data-title="How the pickup shapes your tone" hidden>
+          <h3>What it is</h3>
+          <p>A passive pickup is a coil of fine wire around magnets. The moving strings change the magnetic field and induce a small voltage in the coil. Electrically it behaves like a signal source in series with a resistance (the DC resistance you can measure) and an inductance.</p>
+          <h3>What changing it does</h3>
+          <p>More turns of wire raise both the resistance and the inductance. You get more output, and the treble peak moves lower. That's why "hot" pickups sound thicker and midrange-heavy, while lower-wound pickups sound brighter and clearer.</p>
+          <p>The inductance, together with the cable and the pots, sets where the resonant peak sits. The resistance and the pots' load soften that peak.</p>
+          <h3>About the numbers</h3>
+          <p>The simulator estimates inductance from DC resistance (L ≈ R ÷ 2500, so 6k ≈ 2.4 H). That's a rule of thumb: wire gauge, magnets and coil shape all change the ratio, and humbuckers vary the most. The trend holds even when the exact numbers don't.</p>
+          <h3>Try this</h3>
+          <p>On the front panel, press Play so you can hear the change. Then open Setup and sweep the pickup from 6k to 12k: the Peak in the readout above the tabs falls, the Cutoff drops with it, and the sound turns thicker and darker. Close Setup afterward to see the new shape on the graph.</p>
+          <h3>Shop tip</h3>
+          <p>For an exact reading, measure DC resistance across the pickup's two leads with them disconnected from the pots. A reading far below spec can mean shorted turns; an open reading (OL) means a broken coil or lead.</p>
+        </section>
+        <section data-why="pots" data-title="How pots &amp; caps shape your tone" hidden>
+          <h3>What it is</h3>
+          <p>The volume and tone pots are variable resistors from the signal to ground. Even wide open, each one is a load across the pickup. The tone cap sits in series with the tone pot: as you turn the tone down, its resistance drops and the cap sends treble to ground.</p>
+          <h3>What changing it does</h3>
+          <p><b>Pot value.</b> 500k pots load the pickup less than 250k pots, so the treble peak stays sharper and brighter. That's why darker-sounding humbuckers usually get 500k and brighter single coils usually get 250k.</p>
+          <p><b>Tone cap.</b> A bigger cap cuts lower frequencies as you roll the tone down. With the tone fully down, the cap and the pickup form a new peak: low and dark with .047, higher and vocal with .015 (the "woman tone").</p>
+          <p><b>Tone knob.</b> At treble frequencies the cap's reactance is tiny next to the pot's resistance, so from 10 down to about 7 the tone circuit acts as a plain resistor to ground: it softens the peak but barely moves the cutoff. Once the resistance falls near the circuit's own impedance (around 6) the peak disappears, and below about 5 the cap takes over and the tone goes dark. That's why the cap value only matters with the tone well down.</p>
+          <p><b>Taper.</b> Both pots are modeled as audio (log) taper, with 10% of their resistance at the halfway point. Real pots vary by maker, so where the change happens on a real knob will differ.</p>
+          <h3>Try this</h3>
+          <p>On the front panel, press Play, then open Setup. Sweep the Tone knob in this tab from 10 to 0: the peak flattens first, then the Cutoff falls. With the Tone at 0, tap each cap: the Peak moves down and the sound goes from vocal to dark. Then set the Tone back to 10 and switch between 250k and 500k to hear the brightness change.</p>
+          <h3>Shop tip</h3>
+          <p>Pots carry a tolerance, often ±10–20%, so a "250k" pot can measure well off its label. Measure before you install; matched pots make a guitar's controls feel consistent.</p>
+        </section>
+        <section data-why="wiring" data-title="How wiring &amp; bleed shape your tone" hidden>
+          <h3>What it is</h3>
+          <p><b>Wiring.</b> Modern wiring connects the tone circuit to the pickup side of the volume pot. 50s wiring connects it to the volume pot's wiper, the side that goes to the output.</p>
+          <p><b>Treble bleed.</b> A small network wired across the volume pot's input and wiper.</p>
+          <h3>What changing it does</h3>
+          <p>When you roll the volume down, the upper part of the volume pot becomes a resistance in series with the signal. With the cable's capacitance it forms a filter that cuts treble, so the guitar gets darker as it gets quieter.</p>
+          <p><b>50s wiring</b> changes how the tone and volume controls interact, so less treble is lost as you roll down.</p>
+          <p><b>A treble bleed</b> gives high frequencies a path around the volume pot, so they survive at lower volume.</p>
+          <ul>
+            <li><b>Cap only:</b> the strongest effect; can sound thin and harsh when turned well down.</li>
+            <li><b>Parallel resistor (Duncan style):</b> evens out the effect, but changes how the volume knob sweeps.</li>
+            <li><b>Series resistor (Kinman style):</b> keeps the knob's normal sweep and more body.</li>
+          </ul>
+          <p><b>Recipes and ★.</b> A 500k pot puts more resistance in the way, so the same cap lets more treble past it. That's why 500k pots get smaller caps. The ★ marks recipes matched to your pot value. Recipe values are typical starting points, not rules.</p>
+          <h3>Try this</h3>
+          <p>On the front panel, press Play, then open Setup. Set the Volume knob in this tab to about 4 and switch between None, Parallel and Series: the Cutoff readout climbs and you hear the treble come back.</p>
+          <h3>Shop tip</h3>
+          <p>You hear a bleed most when riding the volume into a clean or edge-of-breakup amp. Use the Custom recipe to match the parts you have on the bench before you solder.</p>
+        </section>
+        <section data-why="cable" data-title="How the cable shapes your tone" hidden>
+          <h3>What it is</h3>
+          <p>A guitar cable is two conductors separated by insulation, which makes it a capacitor, typically around 30 pF per foot. It sits across the guitar's output, in parallel with everything else.</p>
+          <h3>What changing it does</h3>
+          <p>The pickup's inductance and the cable's capacitance form a resonant circuit, f ≈ 1 / (2π√LC). More capacitance moves the peak lower and makes it more pronounced, and treble falls away above it. A long or high-capacitance cable sounds darker, with a stronger midrange bump; a short, low-capacitance cable sounds brighter and more open.</p>
+          <p>At audio frequencies the cable is electrically short (a 5 kHz wavelength is tens of kilometers), so it acts as one lumped capacitor, not a transmission line. Its effect is large because the pickup is a high-impedance source with several henries of inductance.</p>
+          <h3>Try this</h3>
+          <p>On the front panel, press Play. Then open Setup, choose Typical and slide from 3 ft to 30 ft: the Peak readout falls and grows, and the sound darkens. Then try High-cap at 20 ft, roughly what an old coiled cable can be like.</p>
+          <h3>Shop tip</h3>
+          <p>A buffered pedal or active electronics isolates the pickup from long cable runs: only the cable before the buffer loads the pickup. Low-capacitance cable matters most between the guitar and the first pedal or the amp. A capacitance meter across tip and sleeve gives a cable's total.</p>
+        </section>
+        <p class="why-foot">This is a simplified model. Real parts vary, but the trends match what players hear.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* Guitar Tone Filter Simulator. (c) 2026 G$ Luthier Services. All rights reserved. Unauthorized copying or redistribution is prohibited. */
+(function(){var _a=document.querySelectorAll('#tone-sim .cap-btn');var _b=2;var _c=document.getElementById('toneKnob2');var _d=document.getElementById('volKnob2');var _e=document.getElementById('k-val2');var _f=document.getElementById('v-val2');var _g=document.getElementById('c-val');var _h=document.getElementById('cap-note');var _i=document.getElementById('cap-pair');var _j=[{uF:0.015,pot:null,note:'Smallest: rolled down, a vocal midrange peak. The neck-pickup "woman tone".'},{uF:0.022,pot:500,note:'Gibson style: a smooth roll-off without turning muddy.'},{uF:0.047,pot:250,note:'Fender style: the strongest cut; rolled down, dark and thick.'}];var _k=document.getElementById('toneKnob');var _l=document.getElementById('k-val');var _m=document.getElementById('volKnob');var _n=document.getElementById('v-val');var _o=document.getElementById('pickup');var _p=document.getElementById('p-val');var _q=document.querySelectorAll('#tone-sim .bleed-btn');var _r=document.getElementById('bleed-recipe-row');var _s=document.getElementById('bleed-recipe');var _t=document.getElementById('bleed-suggest');var _u=document.getElementById('bleed-note');var _v=document.getElementById('bleed-custom');var _w=document.getElementById('tb-cap');var _x=document.getElementById('tb-cap-val');var _y=document.getElementById('tb-res');var _z=document.getElementById('tb-res-val');var _A=document.getElementById('tb-res-group');var _B=document.getElementById('fc-readout');var _C=document.getElementById('r-readout');var _D=document.querySelectorAll('#tone-sim .pot-btn');var _E=document.querySelectorAll('#tone-sim .wire-btn');var _F=document.getElementById('curvePath');var _G=document.getElementById('lbl-rp');var _H=document.getElementById('lbl-l');var _I=document.getElementById('lbl-rvol');var _J=document.getElementById('lbl-vset');var _K=document.querySelectorAll('#tone-sim .lbl-rt');var _L=document.querySelectorAll('#tone-sim .lbl-tset');var _M=document.querySelectorAll('#tone-sim .lbl-ct');var _N=document.getElementById('lbl-tb');var _O=document.getElementById('tone-modern');var _P=document.getElementById('tone-fifties');var _Q=document.getElementById('bleed-labels');var _R={cap:document.getElementById('bleed-cap'),parallel:document.getElementById('bleed-parallel'),hybrid:document.getElementById('bleed-hybrid'),series:document.getElementById('bleed-series')};var _S=250;var _T=null;var _U='modern';var _V=2.4,_W=6000,_X=450e-12;var _Y=30;var _Z=document.getElementById('cable-len');var _aa=document.getElementById('cable-val');var _ba=document.getElementById('setup-readout');var _ca=document.querySelectorAll('#tone-sim .cable-btn');var _da=document.getElementById('lbl-cable');var _ea={cap:[{name:'Generic',C:1e-9,pot:null},{name:'PRS',C:180e-12,pot:500},{name:'G&L',C:200e-12,pot:null},{name:'Custom',custom:true}],parallel:[{name:'Duncan standard',C:1e-9,R:100000,pot:250},{name:'Smoother sweep',C:1e-9,R:150000,pot:250},{name:'Humbucker',C:680e-12,R:150000,pot:500},{name:'Humbucker, subtle',C:470e-12,R:220000,pot:500},{name:'Fender modern',C:1.2e-9,R:130000,Rs:20000,pot:null},{name:'Custom',custom:true}],series:[{name:'Kinman',C:1.2e-9,R:130000,pot:250},{name:'Kinman, lighter',C:1e-9,R:130000,pot:null},{name:'Custom',custom:true}]};var _ia={none:'No bleed: treble fades as the volume drops.',cap:'Simplest; most treble, can turn thin.',parallel:'Most common; changes the volume sweep.',series:'Keeps the normal sweep and more body.'};var _ja='none';var _ka={cap:0,parallel:0,series:0};var _la={cap:false,parallel:false,series:false};function _ma(_ga){var _na=Math.round(_ga*1e12);return _na>=1000?(_na/1000).toFixed(_na%1000===0?0:1)+' nF':Math.round(_na)+' pF';}function _oa(_ha){return Math.round(_ha/1000)+' kΩ';}function _pa(_qa,_ra){var _sa=_ma(_qa.C);if(_ra==='cap')return _sa;_sa+=(_ra==='series'?' + ':' ∥ ')+_oa(_qa.R);if(_qa.Rs)_sa+=' + '+_oa(_qa.Rs);return _sa;}function _ta(){if(_ja==='none')return null;var _qa=_ea[_ja][_ka[_ja]];if(_qa.custom){_qa={C:parseFloat(_w.value)*1e-12,R:parseFloat(_y.value)*1000,custom:true,pot:null};}return{type:_ja,C:_qa.C,R:_qa.R,Rs:_qa.Rs,recipe:_qa};}function _ua(_ra){var _va=_ea[_ra];for(var _wa=0;_wa<_va.length;_wa++)if(_va[_wa].pot===_S)return _wa;return 0;}function _xa(){if(_ja==='none')return;var _va=_ea[_ja];_s.innerHTML='';_va.forEach(function(_qa,_wa){var _ya=document.createElement('option');_ya.value=_wa;_ya.textContent=(_qa.pot===_S?'★ ':'')+_qa.name+(_qa.custom?': set your own values':': '+_pa(_qa,_ja));_s.appendChild(_ya);});_s.value=_ka[_ja];}var _za=50,_Aa=550,_Ba=10,_Ca=263.3;var _Da=20,_Ea=20000;var _Fa=20,_Ga=-60;var _Ha=Math.log10(_Da),_Ia=Math.log10(_Ea);var _Ja=300,_Ka=[];for(var _wa=0;_wa<=_Ja;_wa++)_Ka.push(Math.pow(10,_Ha+(_wa/_Ja)*(_Ia-_Ha)));function _La(_Ma){return _za+((Math.log10(_Ma)-_Ha)/(_Ia-_Ha))*(_Aa-_za);}function _Na(_Oa){var _Pa=isFinite(_Oa)?Math.max(_Ga,Math.min(_Fa,_Oa)):_Ga;return _Ba+((_Fa-_Pa)/(_Fa-_Ga))*(_Ca-_Ba);}var _Qa=[0,0];function _Ra(_Sa,_Ta){return[_Sa[0]+_Ta[0],_Sa[1]+_Ta[1]];}function _Ua(_Sa,_Ta){return[_Sa[0]*_Ta[0]-_Sa[1]*_Ta[1],_Sa[0]*_Ta[1]+_Sa[1]*_Ta[0]];}function _Va(_Sa,_Ta){var _Wa=_Ta[0]*_Ta[0]+_Ta[1]*_Ta[1];return[(_Sa[0]*_Ta[0]+_Sa[1]*_Ta[1])/_Wa,(_Sa[1]*_Ta[0]-_Sa[0]*_Ta[1])/_Wa];}function _Xa(_Sa){return _Va([1,0],_Sa);}function _Ya(_Za){return(Math.pow(81,_Za)-1)/80;}function _ab(_bb,_Ta){if(!_Ta)return _Qa;if(_Ta.type==='series')return _Xa([_Ta.R,-1/(_bb*_Ta.C)]);var _cb=[0,_bb*_Ta.C];if(_Ta.type==='parallel')_cb=_Ra(_cb,[1/_Ta.R,0]);if(_Ta.Rs)_cb=_Xa(_Ra([_Ta.Rs,0],_Xa(_cb)));return _cb;}function _db(_Ma,_eb){var _bb=2*Math.PI*_Ma;var _fb=_Xa([_W,_bb*_V]);var _gb=_Xa([_eb.R_t,-1/(_bb*_eb.C_t)]);var _jb=_Ra([1/_eb.R_high,0],_ab(_bb,_eb.bleed));var _lb=_eb.wiring==='modern'?_gb:_Qa;var _mb=_Ra([1/_eb.R_low,_bb*_X],_eb.wiring==='fifties'?_gb:_Qa);var _nb=_Ra(_jb,_mb);var _ob=_Va(_fb,_Ra(_Ra(_fb,_lb),_Va(_Ua(_jb,_mb),_nb)));return _Va(_Ua(_ob,_jb),_nb);}function _pb(_Ma,_eb){var _qb=_db(_Ma,_eb);return 20*Math.log10(Math.hypot(_qb[0],_qb[1]));}var _rb=(function(){var _sb=null,_tb=false,_ub=null,_vb=0,_wb=0;var _xb=null,_yb=null,_zb=null,_Ab=null,_Bb={};var _Cb=null,_Db=false,_Eb=0;var _Fb={note:{notes:[110.0],period:2.4,spread:0,sustain:20,level:0.35},power:{notes:[82.41,123.47,164.81],period:3.6,spread:0.012,sustain:20,level:0.6},chord:{notes:[82.41,123.47,164.81,207.65,246.94,329.63],period:4.0,spread:0.018,sustain:18,level:0.35}};function _Ib(_Jb,_Kb,_Lb,_Mb,_Nb,_Hb){var _Ob=Math.max(2,Math.round(_Mb/_Lb)),_Pb=new Float32Array(_Ob),_Qb=0,_wa;for(_wa=0;_wa<_Ob;_wa++){var _qa=Math.random()*2-1;_Qb=0.6*_qa+0.4*_Qb;_Pb[_wa]=_Qb;}var _Rb=Math.pow(10,-3/(_Hb*_Lb)),_Sb=0;for(_wa=_Kb;_wa<_Jb.length;_wa++){var _Tb=(_Sb+1)%_Ob,_Pa=_Pb[_Sb];_Jb[_wa]+=_Pa*_Nb;_Pb[_Sb]=_Rb*(0.85*_Pa+0.15*_Pb[_Tb]);_Sb=_Tb;}}function _Ub(_Vb,_Wb){var _Xb=_Fb[_Vb],_Mb=_sb.sampleRate,_Yb=0.3;var _Zb=Math.round(_Mb*(_Xb.period+_Yb));var _Ta=_sb.createBuffer(1,_Zb,_Mb),_Wa=_Ta.getChannelData(0),_Gb=_Xb.notes.slice(),_wa;if(_Wb)_Gb.reverse();_Gb.forEach(function(_Ma,_ac){_Ib(_Wa,Math.round(_ac*_Xb.spread*_Mb),_Ma,_Mb,1,_Xb.sustain);});var _bc=Math.round(_Mb*0.05),_cc=Math.round(_bc/2),_dc=[],_ec;for(_ec=0;_ec+_bc<=_Zb;_ec+=_cc){var _fc=0;for(_wa=_ec;_wa<_ec+_bc;_wa++)_fc+=_Wa[_wa]*_Wa[_wa];_dc.push(Math.sqrt(_fc/_bc));}var _gc=Math.round(0.25*_Mb/_cc),_hc=_dc[Math.min(_gc,_dc.length-1)]||1e-9;var _ic=_dc.map(function(_Pa,_ac){if(_ac<_gc)return 1;return Math.min(6,_hc/Math.max(_Pa,1e-9));});for(_wa=0;_wa<_Zb;_wa++){var _jc=_wa/_cc,_kc=Math.min(_ic.length-1,Math.floor(_jc)),_lc=Math.min(_ic.length-1,_kc+1);var _sa=Math.min(1,_jc-_kc);_Wa[_wa]*=_ic[_kc]*(1-_sa)+_ic[_lc]*_sa;}var _mc=0;for(_wa=0;_wa<_Zb;_wa++)_mc=Math.max(_mc,Math.abs(_Wa[_wa]));for(_wa=0;_wa<_Zb;_wa++)_Wa[_wa]*=_Xb.level/_mc;var _nc=Math.round(_Mb*_Yb);for(_wa=0;_wa<_nc;_wa++)_Wa[_Zb-1-_wa]*=_wa/_nc;return _Ta;}function _oc(_pc,_qc,_rc){var _Ob=_pc.length,_wa,_ec,_ac,_Zb;for(_wa=1,_ec=0;_wa<_Ob;_wa++){var _sc=_Ob>>1;for(;_ec&_sc;_sc>>=1)_ec^=_sc;_ec^=_sc;if(_wa<_ec){var _sa=_pc[_wa];_pc[_wa]=_pc[_ec];_pc[_ec]=_sa;_sa=_qc[_wa];_qc[_wa]=_qc[_ec];_qc[_ec]=_sa;}}for(_Zb=2;_Zb<=_Ob;_Zb<<=1){var _tc=2*Math.PI/_Zb*(_rc?1:-1),_uc=Math.cos(_tc),_vc=Math.sin(_tc);for(_wa=0;_wa<_Ob;_wa+=_Zb){var _wc=1,_xc=0;for(_ac=0;_ac<_Zb/2;_ac++){var _yc=_pc[_wa+_ac],_zc=_qc[_wa+_ac];var _Ac=_pc[_wa+_ac+_Zb/2]*_wc-_qc[_wa+_ac+_Zb/2]*_xc;var _Bc=_pc[_wa+_ac+_Zb/2]*_xc+_qc[_wa+_ac+_Zb/2]*_wc;_pc[_wa+_ac]=_yc+_Ac;_qc[_wa+_ac]=_zc+_Bc;_pc[_wa+_ac+_Zb/2]=_yc-_Ac;_qc[_wa+_ac+_Zb/2]=_zc-_Bc;var _Cc=_wc*_uc-_xc*_vc;_xc=_wc*_vc+_xc*_uc;_wc=_Cc;}}}}function _Dc(_eb,_Mb){var _Ja=4096,_pc=new Float64Array(_Ja),_qc=new Float64Array(_Ja),_ac;for(_ac=0;_ac<=_Ja/2;_ac++){var _qb=_db(Math.max(1,_ac*_Mb/_Ja),_eb);_pc[_ac]=_qb[0];_qc[_ac]=_qb[1];if(_ac>0&&_ac<_Ja/2){_pc[_Ja-_ac]=_qb[0];_qc[_Ja-_ac]=-_qb[1];}}_qc[_Ja/2]=0;_oc(_pc,_qc,true);var _Ec=2048,_Ta=_sb.createBuffer(1,_Ec,_Mb),_Wa=_Ta.getChannelData(0),_nc=512;for(_ac=0;_ac<_Ec;_ac++){var _bb=_ac<_Ec-_nc?1:0.5*(1+Math.cos(Math.PI*(_ac-(_Ec-_nc))/_nc));_Wa[_ac]=_pc[_ac]/_Ja*_bb;}return _Ta;}function _Fc(){_Db=false;_Eb=Date.now();if(!_sb||!_Cb)return;var _sa=_sb.currentTime,_Gc=_sb.createConvolver(),_Hc=_sb.createGain();_Gc.normalize=false;_Gc.buffer=_Dc(_Cb,_sb.sampleRate);_Hc.gain.setValueAtTime(0,_sa);_Hc.gain.linearRampToValueAtTime(1,_sa+0.04);_xb.connect(_Gc);_Gc.connect(_Hc);_Hc.connect(_Ab.input);if(_yb){var _Ic=_yb,_Jc=_zb;_Jc.gain.setValueAtTime(_Jc.gain.value,_sa);_Jc.gain.linearRampToValueAtTime(0,_sa+0.04);setTimeout(function(){try{_xb.disconnect(_Ic);_Ic.disconnect();_Jc.disconnect();}catch(_fc){}},120);}_yb=_Gc;_zb=_Hc;}function _Kc(_eb){_Cb=_eb;if(!_sb||_Db)return;var _Lc=Math.max(0,40-(Date.now()-_Eb));_Db=true;setTimeout(_Fc,_Lc);}function _Mc(){var _Nc=_sb.createWaveShaper(),_Ob=2048,_Oc=new Float32Array(_Ob),_Pc=2;for(var _wa=0;_wa<_Ob;_wa++){var _Za=_wa/(_Ob-1)*2-1;_Oc[_wa]=Math.tanh(_Pc*(_Za+0.08*_Za*_Za))/Math.tanh(_Pc);}_Nc.curve=_Oc;_Nc.oversample='4x';var _Qc=_sb.createBiquadFilter();_Qc.type='highpass';_Qc.frequency.value=80;_Qc.Q.value=0.7;var _Rc=_sb.createBiquadFilter();_Rc.type='lowpass';_Rc.frequency.value=7000;_Rc.Q.value=0.6;var _Sc=_sb.createGain();_Sc.gain.value=0.6;_Nc.connect(_Qc);_Qc.connect(_Rc);_Rc.connect(_Sc);return{input:_Nc,master:_Sc};}function _Tc(){if(_sb)return;var _Uc=window.AudioContext||window.webkitAudioContext;_sb=new _Uc();_xb=_sb.createGain();_Ab=_Mc();_Ab.master.connect(_sb.destination);}function _Vc(_Vb,_Wb){var _Wc=_Vb+(_Wb?'u':'d');if(!_Bb[_Wc])_Bb[_Wc]=_Ub(_Vb,_Wb);return _Bb[_Wc];}function _Xc(){var _Vb=document.getElementById('sound-select').value,_Xb=_Fb[_Vb];while(_vb<_sb.currentTime+0.3){var _Yc=_sb.createBufferSource();_Yc.buffer=_Vc(_Vb,_Vb==='chord'&&_wb%2===1);_Yc.connect(_xb);_Yc.start(_vb);_wb++;_vb+=_Xb.period;}}function _Kb(){_Tc();if(_sb.resume)_sb.resume();_Fc();_Ab.master.gain.cancelScheduledValues(_sb.currentTime);_Ab.master.gain.setValueAtTime(0.6,_sb.currentTime);_vb=_sb.currentTime+0.05;_wb=0;_Xc();_ub=setInterval(_Xc,100);_tb=true;}function _Zc(){if(!_tb)return;clearInterval(_ub);_ub=null;_tb=false;var _sa=_sb.currentTime;_Ab.master.gain.setValueAtTime(_Ab.master.gain.value,_sa);_Ab.master.gain.linearRampToValueAtTime(0,_sa+0.15);setTimeout(function(){if(!_tb&&_sb.suspend)_sb.suspend();},250);}return{toggle:function(){if(_tb)_Zc();else _Kb();return _tb;},stop:_Zc,isPlaying:function(){return _tb;},setParams:_Kc,renderOffline:function(_eb,_Vb,_ad){var _bd=[_sb,_xb,_Ab,_yb,_zb,_Bb,_Cb];var _Ic=new OfflineAudioContext(1,Math.round(44100*_ad),44100);_sb=_Ic;_Bb={};_yb=null;_zb=null;_Cb=_eb;_xb=_sb.createGain();_Ab=_Mc();_Ab.master.connect(_sb.destination);_Fc();var _cd=_Fb[_Vb].period,_dd=0,_Ob=0;for(_dd=0;_dd<_ad;_dd+=_cd,_Ob++){var _Yc=_sb.createBufferSource();_Yc.buffer=_Vc(_Vb,_Vb==='chord'&&_Ob%2===1);_Yc.connect(_xb);_Yc.start(_dd);}var _ed=_Ic.startRendering();_sb=_bd[0];_xb=_bd[1];_Ab=_bd[2];_yb=_bd[3];_zb=_bd[4];_Bb=_bd[5];_Cb=_bd[6];return _ed;}};})();function _fd(_Pa){return(_Pa/1000).toFixed(1)+' kΩ';}function _gd(_Za){return(_Za*10).toFixed(1);}function _hd(_kb){_r.hidden=!_kb;_u.textContent=_ia[_ja];_q.forEach(function(_Ta){_Ta.classList.toggle('active',_Ta.getAttribute('data-style')===_ja);});if(!_kb)return;var _qa=_kb.recipe;_v.hidden=!_qa.custom;_A.style.display=_ja==='cap'?'none':'';_x.textContent=_ma(parseFloat(_w.value)*1e-12);_z.textContent=_y.value+' kΩ';var _id='',_jd=false;if(_S===500&&_ja!=='series'&&_kb.C>=1e-9){_id='With 500k pots, 1 nF or more can sound thin and harsh. Try 470–680 pF.';_jd=true;}else if(_qa.pot&&_qa.pot!==_S){_id='This recipe is meant for '+_qa.pot+'k pots. Your pots are '+_S+'k; try a ★ recipe.';_jd=true;}else if(_qa.pot===_S){_id='★ Suggested for your '+_S+'k pots';}else if(!_qa.custom){_id='Works with 250k or 500k pots.';}_t.textContent=_id;_t.classList.toggle('warn',_jd);}function _kd(){var _ld=_S*1000;var _md=_k.value/100;var _nd=_m.value/100;var _od=_j[_b];var _ib=_od.uF*1e-6;var _kb=_ta();_W=parseFloat(_o.value);_V=_W/2500;var _pd=parseInt(_Z.value,10);_X=_pd*_Y*1e-12;_aa.textContent=_pd+' ft · '+Math.round(_pd*_Y)+' pF';_da.textContent=Math.round(_pd*_Y)+' pF';var _hb=_md<=0.5?_ld*0.1*(_md/0.5):_ld*(0.1+0.9*((_md-0.5)/0.5));var _qd=_Ya(_nd);var _rd={R_t:_hb,C_t:_ib,R_low:Math.max(1,_ld*_qd),R_high:Math.max(1,_ld*(1-_qd)),wiring:_U,bleed:_kb};_C.textContent=_S;_g.textContent=_od.uF.toFixed(3)+' µF';_h.textContent=_od.note;_i.textContent=_od.pot===_S?'★ Classic pairing with your '+_S+'k pots':_od.pot?'Classic pairing is with '+_od.pot+'k pots':'A specialty choice; works with 250k or 500k pots';_p.textContent=_fd(_W)+' · ~'+_V.toFixed(1)+' H';_l.textContent=_md===1?'10.0 (Wide Open)':_md===0?'0.0 (Fully Dark)':_gd(_md);_n.textContent=_nd===1?'10.0 (Full)':_nd===0?'0.0 (Off)':_gd(_nd);_c.value=_k.value;_d.value=_m.value;_e.textContent=_gd(_md);_f.textContent=_gd(_nd);_a.forEach(function(_Ta){_Ta.classList.toggle('active',parseInt(_Ta.getAttribute('data-cap'),10)===_b);});_G.textContent=_fd(_W);_H.textContent=_V.toFixed(1)+' H';_I.textContent=_fd(_ld);_J.textContent='on '+_gd(_nd);_K.forEach(function(_sd){_sd.textContent=_fd(_hb);});_L.forEach(function(_sd){_sd.textContent='on '+_gd(_md);});_M.forEach(function(_sd){_sd.textContent=_od.uF.toFixed(3)+' µF';});_O.style.display=_U==='modern'?'':'none';_P.style.display=_U==='fifties'?'':'none';var _td=!_kb?'none':_kb.Rs?'hybrid':_kb.type;Object.keys(_R).forEach(function(_ac){_R[_ac].style.display=_ac===_td?'':'none';});_Q.style.display=_kb?'':'none';_N.textContent=_kb?_pa(_kb,_kb.type):'';_hd(_kb);_T=_rd;_rb.setParams(_rd);var _ud=_Ka.map(function(_Ma){return _pb(_Ma,_rd);});var _Wa='';for(var _wa=0;_wa<_Ka.length;_wa++){_Wa+=(_wa===0?'M':'L')+_La(_Ka[_wa]).toFixed(1)+','+_Na(_ud[_wa]).toFixed(1)+' ';}_F.setAttribute('d',_Wa);var _vd=-1;for(var _wd=0;_wd<_Ka.length;_wd++)if(_Ka[_wd]>=100&&(_vd<0||_ud[_wd]>_ud[_vd]))_vd=_wd;var _xd=_ud[_vd]>_ud[0]+0.5?'Peak '+Math.round(_Ka[_vd]).toLocaleString()+' Hz (+'+(_ud[_vd]-_ud[0]).toFixed(1)+' dB)':'No clear peak';if(_nd===0){_B.textContent='Muted';_ba.textContent='Volume is off';return;}var _yd=_ud[0],_zd=0;for(var _ec=1;_ec<_ud.length;_ec++)if(_ud[_ec]>_ud[_zd])_zd=_ec;var _Ad=null;for(var _ac=Math.max(_zd,1);_ac<_ud.length;_ac++){if(_ud[_ac]<_yd-3){var _sa=(_yd-3-_ud[_ac-1])/(_ud[_ac]-_ud[_ac-1]);_Ad=_Ka[_ac-1]*Math.pow(_Ka[_ac]/_Ka[_ac-1],isFinite(_sa)?_sa:0);break;}}_B.textContent=_Ad===null?'> 20,000 Hz':Math.round(_Ad).toLocaleString()+' Hz';_ba.textContent=_xd+' · Cutoff '+_B.textContent;}_a.forEach(function(_Bd){_Bd.addEventListener('click',function(){_b=parseInt(_Bd.getAttribute('data-cap'),10);_kd();});});_c.addEventListener('input',function(){_k.value=_c.value;_kd();});_d.addEventListener('input',function(){_m.value=_d.value;_kd();});_k.addEventListener('input',_kd);_m.addEventListener('input',_kd);_o.addEventListener('input',_kd);_q.forEach(function(_Bd){_Bd.addEventListener('click',function(){_ja=_Bd.getAttribute('data-style');if(_ja!=='none'&&!_la[_ja]){_ka[_ja]=_ua(_ja);_la[_ja]=true;}_xa();_kd();});});_s.addEventListener('change',function(){_ka[_ja]=parseInt(_s.value,10);_kd();});_Z.addEventListener('input',_kd);_ca.forEach(function(_Bd){_Bd.addEventListener('click',function(){_ca.forEach(function(_Ta){_Ta.classList.remove('active');});_Bd.classList.add('active');_Y=parseInt(_Bd.getAttribute('data-pf'),10);_kd();});});_w.addEventListener('input',_kd);_y.addEventListener('input',_kd);_D.forEach(function(_Bd){_Bd.addEventListener('click',function(){_D.forEach(function(_Ta){_Ta.classList.remove('active');});_Bd.classList.add('active');_S=parseInt(_Bd.getAttribute('data-value'),10);_xa();_kd();});});_E.forEach(function(_Bd){_Bd.addEventListener('click',function(){_E.forEach(function(_Ta){_Ta.classList.remove('active');});_Bd.classList.add('active');_U=_Bd.getAttribute('data-wiring');_kd();});});var _Cd=document.getElementById('play-btn');var _Dd=document.getElementById('sound-select');function _Ed(_Fd){_Cd.textContent=_Fd?'■ Stop sound':'▶ Play sound';_Cd.classList.toggle('on',_Fd);_Cd.setAttribute('aria-pressed',_Fd?'true':'false');}_Cd.addEventListener('click',function(){try{_Ed(_rb.toggle());}catch(_fc){_Cd.textContent='Sound not supported';_Cd.disabled=true;}});_Dd.addEventListener('change',function(){if(_rb.isPlaying()){_rb.stop();setTimeout(function(){_Ed(_rb.toggle());},200);}});document.addEventListener('visibilitychange',function(){if(document.hidden&&_rb.isPlaying()){_rb.stop();_Ed(false);}});window.addEventListener('pagehide',function(){_rb.stop();});if(location.hash==='#audiotest')window.__toneAudio={audio:_rb,transfer:_db,params:function(){return _T;}};var _Gd=document.getElementById('setup-fold');var _Hd=document.getElementById('fold-hint');var _Id=document.getElementById('done-btn');var _Jd=document.getElementById('tone-sim');function _Kd(){_Hd.textContent=_Gd.open?'Tap here to go back to the graph and knobs':'Tap to change pickup, pots, cap and wiring';_Jd.classList.toggle('setup-mode',_Gd.open);}var _Md=window.matchMedia?window.matchMedia('(min-width: 1000px)'):null;function _Nd(){if(_Md&&_Md.matches&&!_Gd.open)_Gd.open=true;}_Gd.querySelector('summary').addEventListener('click',function(_fc){if(_Md&&_Md.matches)_fc.preventDefault();});if(_Md){if(_Md.addEventListener)_Md.addEventListener('change',_Nd);else if(_Md.addListener)_Md.addListener(_Nd);}_Gd.addEventListener('toggle',function(){_Kd();if(window.matchMedia&&window.matchMedia('(max-width: 600px)').matches){try{(_Gd.open?_Gd:_Jd).scrollIntoView({block:'start'});}catch(_fc){}}});var _Od=document.getElementById('why-btn');var _Pd=document.getElementById('why-sheet');var _Qd=document.getElementById('why-backdrop');var _Rd=document.getElementById('why-title');var _Sd=document.getElementById('why-close');function _Td(_fa){return _Pd.querySelector('section[data-why="'+_fa+'"]');}function _Ud(){var _fa=_Gd.getAttribute('data-tab');_Pd.querySelectorAll('section').forEach(function(_Vd){_Vd.hidden=_Vd.getAttribute('data-why')!==_fa;});_Rd.textContent=_Td(_fa).getAttribute('data-title');_Pd.hidden=false;_Qd.hidden=false;_Pd.scrollTop=0;document.body.style.overflow='hidden';_Sd.focus();}function _Wd(){if(_Pd.hidden)return;_Pd.hidden=true;_Qd.hidden=true;document.body.style.overflow='';_Od.focus();}_Od.addEventListener('click',_Ud);_Sd.addEventListener('click',_Wd);_Qd.addEventListener('click',_Wd);document.addEventListener('keydown',function(_fc){if(_fc.key==='Escape')_Wd();});var _Xd=document.querySelectorAll('#tone-sim .tab-btn');var _Yd=document.getElementById('why-label');function _Zd(_fa){_Gd.setAttribute('data-tab',_fa);_Xd.forEach(function(_Ta){var _Fd=_Ta.getAttribute('data-tab')===_fa;_Ta.classList.toggle('active',_Fd);_Ta.setAttribute('aria-selected',_Fd?'true':'false');document.getElementById('tab-'+_Ta.getAttribute('data-tab')).hidden=!_Fd;});_Yd.textContent=_Td(_fa).getAttribute('data-title');}_Xd.forEach(function(_Ta){_Ta.addEventListener('click',function(){_Zd(_Ta.getAttribute('data-tab'));});});document.querySelectorAll('#tone-sim .hit rect').forEach(function(_qa){_qa.addEventListener('click',function(){_Zd(_qa.getAttribute('data-goto'));});});_Zd('pickup');_Id.addEventListener('click',function(){_Gd.open=false;_Kd();try{document.getElementById('tone-sim').scrollIntoView({behavior:'smooth',block:'start'});}catch(_fc){}});_Nd();_Kd();var _ae=document.getElementById('help-btn');var _be=document.getElementById('help-panel');_ae.addEventListener('click',function(){var _Ld=_be.hidden;_be.hidden=!_Ld;_ae.setAttribute('aria-expanded',_Ld?'true':'false');_ae.textContent=_Ld?'✕ Close':'ⓘ How to use';});_kd();})();
+</script>
+</body>
+</html>
